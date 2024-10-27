@@ -1,0 +1,1622 @@
+[
+    {
+        "number": 0,
+        "value": 0.5531531531531532,
+        "params": {
+            "learning_rate": 4.078406483108435e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:38:48.180319",
+        "datetime_complete": "2024-10-18T23:39:14.429072"
+    },
+    {
+        "number": 1,
+        "value": 0.5252252252252252,
+        "params": {
+            "learning_rate": 2.2527303556119565e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:39:14.429906",
+        "datetime_complete": "2024-10-18T23:39:22.812260"
+    },
+    {
+        "number": 2,
+        "value": 0.5558558558558558,
+        "params": {
+            "learning_rate": 9.262842826110583e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:39:22.812996",
+        "datetime_complete": "2024-10-18T23:39:47.259082"
+    },
+    {
+        "number": 3,
+        "value": 0.5558558558558558,
+        "params": {
+            "learning_rate": 3.0949874505853044e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:39:47.259830",
+        "datetime_complete": "2024-10-18T23:40:12.021452"
+    },
+    {
+        "number": 4,
+        "value": 0.5558558558558558,
+        "params": {
+            "learning_rate": 3.6493070093731666e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:40:12.022191",
+        "datetime_complete": "2024-10-18T23:40:25.036708"
+    },
+    {
+        "number": 5,
+        "value": 0.5612612612612612,
+        "params": {
+            "learning_rate": 1.2643413553000561e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:40:25.037366",
+        "datetime_complete": "2024-10-18T23:40:57.724534"
+    },
+    {
+        "number": 6,
+        "value": 0.5612612612612612,
+        "params": {
+            "learning_rate": 1.5135222530927507e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:40:57.725236",
+        "datetime_complete": "2024-10-18T23:41:29.381565"
+    },
+    {
+        "number": 7,
+        "value": 0.5612612612612612,
+        "params": {
+            "learning_rate": 1.1927380649993363e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:41:29.382321",
+        "datetime_complete": "2024-10-18T23:41:46.576737"
+    },
+    {
+        "number": 8,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.9615638057128005e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:41:46.577439",
+        "datetime_complete": "2024-10-18T23:42:20.661538"
+    },
+    {
+        "number": 9,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.771384066170837e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:42:20.662192",
+        "datetime_complete": "2024-10-18T23:43:07.656304"
+    },
+    {
+        "number": 10,
+        "value": 0.5531531531531532,
+        "params": {
+            "learning_rate": 1.0947192852344786e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:43:07.657016",
+        "datetime_complete": "2024-10-18T23:43:38.541853"
+    },
+    {
+        "number": 11,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.04224747835417e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:43:38.542575",
+        "datetime_complete": "2024-10-18T23:44:40.420363"
+    },
+    {
+        "number": 12,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.534597543839971e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:44:40.421073",
+        "datetime_complete": "2024-10-18T23:45:42.203036"
+    },
+    {
+        "number": 13,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6657542843100593e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:45:42.203735",
+        "datetime_complete": "2024-10-18T23:46:43.469641"
+    },
+    {
+        "number": 14,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 6.270493351440724e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:46:43.470326",
+        "datetime_complete": "2024-10-18T23:46:51.845662"
+    },
+    {
+        "number": 15,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.6798552188900714e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:46:51.846356",
+        "datetime_complete": "2024-10-18T23:47:24.376476"
+    },
+    {
+        "number": 16,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.210144312852607e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:47:24.377219",
+        "datetime_complete": "2024-10-18T23:47:56.173058"
+    },
+    {
+        "number": 17,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.8669270328933406e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:47:56.173729",
+        "datetime_complete": "2024-10-18T23:48:55.413092"
+    },
+    {
+        "number": 18,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1302493348202983e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:48:55.413821",
+        "datetime_complete": "2024-10-18T23:49:12.443730"
+    },
+    {
+        "number": 19,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6106612106024068e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:49:12.444573",
+        "datetime_complete": "2024-10-18T23:49:20.881109"
+    },
+    {
+        "number": 20,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.6857797365665775e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:49:20.881825",
+        "datetime_complete": "2024-10-18T23:49:53.760794"
+    },
+    {
+        "number": 21,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1720259478339937e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:49:53.761483",
+        "datetime_complete": "2024-10-18T23:50:10.005102"
+    },
+    {
+        "number": 22,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6337551299989838e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:50:10.005741",
+        "datetime_complete": "2024-10-18T23:50:26.296952"
+    },
+    {
+        "number": 23,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.9070144061408506e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:50:26.297664",
+        "datetime_complete": "2024-10-18T23:50:42.822709"
+    },
+    {
+        "number": 24,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0786492618923928e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:50:42.823490",
+        "datetime_complete": "2024-10-18T23:50:59.191991"
+    },
+    {
+        "number": 25,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 8.012177372219135e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:50:59.192685",
+        "datetime_complete": "2024-10-18T23:51:29.997679"
+    },
+    {
+        "number": 26,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.6693414329107162e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:51:29.998430",
+        "datetime_complete": "2024-10-18T23:52:04.587404"
+    },
+    {
+        "number": 27,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.4671869542214966e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:52:04.588079",
+        "datetime_complete": "2024-10-18T23:52:22.928538"
+    },
+    {
+        "number": 28,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.373478202957255e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:52:22.929258",
+        "datetime_complete": "2024-10-18T23:52:54.471835"
+    },
+    {
+        "number": 29,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.703888362727691e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:52:54.472587",
+        "datetime_complete": "2024-10-18T23:53:11.047907"
+    },
+    {
+        "number": 30,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.5953209876855408e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:53:11.048569",
+        "datetime_complete": "2024-10-18T23:53:36.555019"
+    },
+    {
+        "number": 31,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 6.414712316858577e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:53:36.555684",
+        "datetime_complete": "2024-10-18T23:54:10.479471"
+    },
+    {
+        "number": 32,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.385225314130071e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:54:10.480161",
+        "datetime_complete": "2024-10-18T23:54:44.000137"
+    },
+    {
+        "number": 33,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.0078836158104144e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:54:44.000840",
+        "datetime_complete": "2024-10-18T23:55:18.204455"
+    },
+    {
+        "number": 34,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 9.790703186886768e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:55:18.205136",
+        "datetime_complete": "2024-10-18T23:55:51.482884"
+    },
+    {
+        "number": 35,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.917584159829057e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:55:51.483611",
+        "datetime_complete": "2024-10-18T23:56:16.744912"
+    },
+    {
+        "number": 36,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 7.082260883866085e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:56:16.745657",
+        "datetime_complete": "2024-10-18T23:56:34.251539"
+    },
+    {
+        "number": 37,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.5793468234694436e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:56:34.252274",
+        "datetime_complete": "2024-10-18T23:56:51.287919"
+    },
+    {
+        "number": 38,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.230379234448603e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:56:51.288672",
+        "datetime_complete": "2024-10-18T23:57:37.749796"
+    },
+    {
+        "number": 39,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 8.314468610973109e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:57:37.750554",
+        "datetime_complete": "2024-10-18T23:58:10.500451"
+    },
+    {
+        "number": 40,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.2786324033879365e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:58:10.501141",
+        "datetime_complete": "2024-10-18T23:58:40.551240"
+    },
+    {
+        "number": 41,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.4350061136051166e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:58:40.551910",
+        "datetime_complete": "2024-10-18T23:59:25.256748"
+    },
+    {
+        "number": 42,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.090874539867702e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-18T23:59:25.257495",
+        "datetime_complete": "2024-10-19T00:00:12.889405"
+    },
+    {
+        "number": 43,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.5974057428868287e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:00:12.890528",
+        "datetime_complete": "2024-10-19T00:01:00.738633"
+    },
+    {
+        "number": 44,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.411127378478953e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:01:00.739391",
+        "datetime_complete": "2024-10-19T00:01:45.879760"
+    },
+    {
+        "number": 45,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.0069767189688513e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:01:45.880573",
+        "datetime_complete": "2024-10-19T00:02:30.557087"
+    },
+    {
+        "number": 46,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.2828537929994088e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:02:30.557800",
+        "datetime_complete": "2024-10-19T00:02:47.426600"
+    },
+    {
+        "number": 47,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0064640863118813e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:02:47.427660",
+        "datetime_complete": "2024-10-19T00:03:18.702016"
+    },
+    {
+        "number": 48,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.961199990781257e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:03:18.702973",
+        "datetime_complete": "2024-10-19T00:03:51.201654"
+    },
+    {
+        "number": 49,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.387505366432574e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:03:51.202345",
+        "datetime_complete": "2024-10-19T00:04:34.693543"
+    },
+    {
+        "number": 50,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.287009106505281e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:04:34.694249",
+        "datetime_complete": "2024-10-19T00:04:51.559668"
+    },
+    {
+        "number": 51,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1996193572480561e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:04:51.560349",
+        "datetime_complete": "2024-10-19T00:05:51.449780"
+    },
+    {
+        "number": 52,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 9.73366507459547e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:05:51.450469",
+        "datetime_complete": "2024-10-19T00:06:50.233170"
+    },
+    {
+        "number": 53,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 6.7880474655912576e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:06:50.233932",
+        "datetime_complete": "2024-10-19T00:07:52.383304"
+    },
+    {
+        "number": 54,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.741253345089984e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:07:52.384102",
+        "datetime_complete": "2024-10-19T00:08:51.243246"
+    },
+    {
+        "number": 55,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.3887611554874534e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:08:51.243979",
+        "datetime_complete": "2024-10-19T00:08:59.808661"
+    },
+    {
+        "number": 56,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.3883077148752536e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:08:59.809394",
+        "datetime_complete": "2024-10-19T00:09:33.233087"
+    },
+    {
+        "number": 57,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 9.661838205443081e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:09:33.233836",
+        "datetime_complete": "2024-10-19T00:10:05.868307"
+    },
+    {
+        "number": 58,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.7797424384554518e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:10:05.869076",
+        "datetime_complete": "2024-10-19T00:10:38.383837"
+    },
+    {
+        "number": 59,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.324262499029424e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:10:38.384606",
+        "datetime_complete": "2024-10-19T00:11:10.412887"
+    },
+    {
+        "number": 60,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.9617428826106852e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:11:10.413680",
+        "datetime_complete": "2024-10-19T00:11:43.685191"
+    },
+    {
+        "number": 61,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.822406436346463e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:11:43.685966",
+        "datetime_complete": "2024-10-19T00:12:46.880380"
+    },
+    {
+        "number": 62,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.1855164754628843e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:12:46.881192",
+        "datetime_complete": "2024-10-19T00:13:51.878641"
+    },
+    {
+        "number": 63,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.2145937394865624e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:13:51.879486",
+        "datetime_complete": "2024-10-19T00:14:54.016652"
+    },
+    {
+        "number": 64,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 7.941862302037194e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:14:54.017438",
+        "datetime_complete": "2024-10-19T00:15:58.844895"
+    },
+    {
+        "number": 65,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 7.66889192476005e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:15:58.845699",
+        "datetime_complete": "2024-10-19T00:16:16.746597"
+    },
+    {
+        "number": 66,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.914940906401248e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:16:16.747404",
+        "datetime_complete": "2024-10-19T00:16:34.477222"
+    },
+    {
+        "number": 67,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.8780997028383925e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:16:34.478017",
+        "datetime_complete": "2024-10-19T00:17:07.853719"
+    },
+    {
+        "number": 68,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.892288826381925e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:17:07.854558",
+        "datetime_complete": "2024-10-19T00:17:41.325397"
+    },
+    {
+        "number": 69,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.7508051108118736e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:17:41.326187",
+        "datetime_complete": "2024-10-19T00:18:07.151937"
+    },
+    {
+        "number": 70,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.031025665925063e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:18:07.152743",
+        "datetime_complete": "2024-10-19T00:19:11.174129"
+    },
+    {
+        "number": 71,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6151401410397592e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:19:11.175060",
+        "datetime_complete": "2024-10-19T00:20:14.756629"
+    },
+    {
+        "number": 72,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0711853045047733e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:20:14.757455",
+        "datetime_complete": "2024-10-19T00:21:19.687149"
+    },
+    {
+        "number": 73,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.7414616695233904e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:21:19.687939",
+        "datetime_complete": "2024-10-19T00:22:24.036191"
+    },
+    {
+        "number": 74,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 8.843333492271067e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:22:24.036980",
+        "datetime_complete": "2024-10-19T00:23:28.634844"
+    },
+    {
+        "number": 75,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.381815461574955e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:23:28.635696",
+        "datetime_complete": "2024-10-19T00:23:45.903306"
+    },
+    {
+        "number": 76,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.5077412049972192e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:23:45.904031",
+        "datetime_complete": "2024-10-19T00:24:33.652238"
+    },
+    {
+        "number": 77,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 6.999162239610657e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:24:33.652959",
+        "datetime_complete": "2024-10-19T00:25:07.346491"
+    },
+    {
+        "number": 78,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.5536960602203607e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:25:07.347539",
+        "datetime_complete": "2024-10-19T00:25:16.396831"
+    },
+    {
+        "number": 79,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.291439803976802e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:25:16.397561",
+        "datetime_complete": "2024-10-19T00:26:19.343206"
+    },
+    {
+        "number": 80,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.112970378673599e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:26:19.344032",
+        "datetime_complete": "2024-10-19T00:26:44.661195"
+    },
+    {
+        "number": 81,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.330749446369124e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:26:44.662092",
+        "datetime_complete": "2024-10-19T00:26:52.814425"
+    },
+    {
+        "number": 82,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1987517932555489e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:26:52.815258",
+        "datetime_complete": "2024-10-19T00:27:01.363866"
+    },
+    {
+        "number": 83,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.8519374168187916e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:27:01.364659",
+        "datetime_complete": "2024-10-19T00:27:10.241002"
+    },
+    {
+        "number": 84,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0089037298411743e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:27:10.241722",
+        "datetime_complete": "2024-10-19T00:27:19.302697"
+    },
+    {
+        "number": 85,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 8.89178336841438e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:27:19.303543",
+        "datetime_complete": "2024-10-19T00:27:50.312845"
+    },
+    {
+        "number": 86,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 6.301011447477422e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:27:50.313563",
+        "datetime_complete": "2024-10-19T00:28:22.499557"
+    },
+    {
+        "number": 87,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0762464497068661e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:28:22.500224",
+        "datetime_complete": "2024-10-19T00:29:12.029149"
+    },
+    {
+        "number": 88,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.835497919238523e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:29:12.029980",
+        "datetime_complete": "2024-10-19T00:29:20.698301"
+    },
+    {
+        "number": 89,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.99888283618106e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:29:20.699344",
+        "datetime_complete": "2024-10-19T00:29:53.240738"
+    },
+    {
+        "number": 90,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.4316951447353151e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:29:53.241520",
+        "datetime_complete": "2024-10-19T00:30:53.385131"
+    },
+    {
+        "number": 91,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.6534808607105187e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:30:53.385869",
+        "datetime_complete": "2024-10-19T00:31:27.364384"
+    },
+    {
+        "number": 92,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.833013446337493e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:31:27.365149",
+        "datetime_complete": "2024-10-19T00:32:00.977453"
+    },
+    {
+        "number": 93,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.34246094848456e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:32:00.978312",
+        "datetime_complete": "2024-10-19T00:32:34.603084"
+    },
+    {
+        "number": 94,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.0654759015110907e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:32:34.603895",
+        "datetime_complete": "2024-10-19T00:33:09.073318"
+    },
+    {
+        "number": 95,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 8.184981753473576e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:33:09.074179",
+        "datetime_complete": "2024-10-19T00:33:26.451491"
+    },
+    {
+        "number": 96,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.3209991049500485e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:33:26.452358",
+        "datetime_complete": "2024-10-19T00:34:32.312626"
+    },
+    {
+        "number": 97,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1825901874716634e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:34:32.313345",
+        "datetime_complete": "2024-10-19T00:35:18.766941"
+    },
+    {
+        "number": 98,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 3.3992729196834844e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:35:18.767803",
+        "datetime_complete": "2024-10-19T00:35:51.614109"
+    },
+    {
+        "number": 99,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 7.654715267439678e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:35:51.614880",
+        "datetime_complete": "2024-10-19T00:36:22.076073"
+    },
+    {
+        "number": 100,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6267979106358017e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:36:22.076878",
+        "datetime_complete": "2024-10-19T00:36:56.092733"
+    },
+    {
+        "number": 101,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.4249781567630349e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:36:56.093462",
+        "datetime_complete": "2024-10-19T00:37:28.261992"
+    },
+    {
+        "number": 102,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.1188360620580324e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:37:28.262931",
+        "datetime_complete": "2024-10-19T00:37:59.908272"
+    },
+    {
+        "number": 103,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.505816094403837e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:37:59.909088",
+        "datetime_complete": "2024-10-19T00:38:31.314361"
+    },
+    {
+        "number": 104,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6794183410145036e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:38:31.315226",
+        "datetime_complete": "2024-10-19T00:39:02.477437"
+    },
+    {
+        "number": 105,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.8495186935043645e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:39:02.478279",
+        "datetime_complete": "2024-10-19T00:40:05.060998"
+    },
+    {
+        "number": 106,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.7503016335609675e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:40:05.061814",
+        "datetime_complete": "2024-10-19T00:40:14.112533"
+    },
+    {
+        "number": 107,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.5654215331239664e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:40:14.113309",
+        "datetime_complete": "2024-10-19T00:41:01.674027"
+    },
+    {
+        "number": 108,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1604561837555908e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:41:01.674887",
+        "datetime_complete": "2024-10-19T00:41:33.474702"
+    },
+    {
+        "number": 109,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.0873668739092265e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:41:33.475606",
+        "datetime_complete": "2024-10-19T00:42:04.767675"
+    },
+    {
+        "number": 110,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.4667645942837354e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:42:04.768514",
+        "datetime_complete": "2024-10-19T00:42:38.200442"
+    },
+    {
+        "number": 111,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.291667245393609e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:42:38.201265",
+        "datetime_complete": "2024-10-19T00:43:41.657171"
+    },
+    {
+        "number": 112,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 6.2840972058955066e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:43:41.657825",
+        "datetime_complete": "2024-10-19T00:44:42.957217"
+    },
+    {
+        "number": 113,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 9.315766883971507e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:44:42.958011",
+        "datetime_complete": "2024-10-19T00:45:45.718265"
+    },
+    {
+        "number": 114,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.244172360689249e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:45:45.719090",
+        "datetime_complete": "2024-10-19T00:46:48.160406"
+    },
+    {
+        "number": 115,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 7.146412380234268e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:46:48.161184",
+        "datetime_complete": "2024-10-19T00:47:49.484639"
+    },
+    {
+        "number": 116,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 8.080142330542221e-06,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:47:49.485422",
+        "datetime_complete": "2024-10-19T00:47:58.188391"
+    },
+    {
+        "number": 117,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 4.37221088796761e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:47:58.189180",
+        "datetime_complete": "2024-10-19T00:48:47.444554"
+    },
+    {
+        "number": 118,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0149060161228054e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:48:47.445363",
+        "datetime_complete": "2024-10-19T00:49:21.729049"
+    },
+    {
+        "number": 119,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.222752374837412e-05,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:49:21.729839",
+        "datetime_complete": "2024-10-19T00:49:54.076210"
+    },
+    {
+        "number": 120,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.4117052233392295e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:49:54.076987",
+        "datetime_complete": "2024-10-19T00:50:27.573901"
+    },
+    {
+        "number": 121,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.2744668262570493e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:50:27.574899",
+        "datetime_complete": "2024-10-19T00:50:43.967355"
+    },
+    {
+        "number": 122,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1469846826358531e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:50:43.968111",
+        "datetime_complete": "2024-10-19T00:51:01.138937"
+    },
+    {
+        "number": 123,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.6330461705451926e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:51:01.139832",
+        "datetime_complete": "2024-10-19T00:51:17.706405"
+    },
+    {
+        "number": 124,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.0389784663142623e-06,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:51:17.707277",
+        "datetime_complete": "2024-10-19T00:51:33.975007"
+    },
+    {
+        "number": 125,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 5.95169479424483e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:51:33.975833",
+        "datetime_complete": "2024-10-19T00:52:35.569551"
+    },
+    {
+        "number": 126,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.7997974773623147e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:52:35.570280",
+        "datetime_complete": "2024-10-19T00:52:53.303855"
+    },
+    {
+        "number": 127,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.4444582107491433e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 15
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:52:53.304710",
+        "datetime_complete": "2024-10-19T00:53:06.710270"
+    },
+    {
+        "number": 128,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.2520191581953936e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:53:06.711054",
+        "datetime_complete": "2024-10-19T00:54:08.397969"
+    },
+    {
+        "number": 129,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.3315539271166412e-05,
+            "per_device_train_batch_size": 32,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:54:08.398820",
+        "datetime_complete": "2024-10-19T00:54:24.386251"
+    },
+    {
+        "number": 130,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.908169951794787e-06,
+            "per_device_train_batch_size": 16,
+            "num_train_epochs": 20
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:54:24.387322",
+        "datetime_complete": "2024-10-19T00:55:27.809437"
+    },
+    {
+        "number": 131,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.7088831684298395e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:55:27.810223",
+        "datetime_complete": "2024-10-19T00:55:36.836588"
+    },
+    {
+        "number": 132,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 2.0115462632895232e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:55:36.837421",
+        "datetime_complete": "2024-10-19T00:55:45.375012"
+    },
+    {
+        "number": 133,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.5462488865375022e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:55:45.375866",
+        "datetime_complete": "2024-10-19T00:55:54.209752"
+    },
+    {
+        "number": 134,
+        "value": 0.5585585585585585,
+        "params": {
+            "learning_rate": 1.1156025297774522e-05,
+            "per_device_train_batch_size": 64,
+            "num_train_epochs": 10
+        },
+        "state": 1,
+        "datetime_start": "2024-10-19T00:55:54.210534",
+        "datetime_complete": "2024-10-19T00:56:02.681536"
+    }
+]
