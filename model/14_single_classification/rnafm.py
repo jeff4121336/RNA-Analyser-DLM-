@@ -1,4 +1,5 @@
-import fm  # for development with RNA-FM
+from time import sleep
+import fm
 from pathlib import Path
 import glob
 import torch
@@ -9,13 +10,14 @@ import pandas as pd
 import math
 from sklearn.manifold import TSNE  # for dimension reduction
 from sklearn.model_selection import train_test_split  # for splitting train/val/test
-from tqdm.notebook import tqdm  # for showing progress
+from tqdm import tqdm  # for showing progress
 import matplotlib.pyplot as plt
 from fasta_data import group_data
 from sklearn.decomposition import PCA
-from dslayer import RNATypeClassifier, RNATypeDataset
+from dslayer import MultiRNAClassifier_CNN, RNATypeDataset, RNATypeClassifier
 import sklearn
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, matthews_corrcoef, accuracy_score
+import time
 # max_length = 0
 # for i in tqdm(range(0, len(seqs), chunk_size)):
 #     data = seqs[i:i + chunk_size]
@@ -26,13 +28,15 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
 #     token_embeddings = np.zeros((len(labels), max_length, 640))
 # numpy.core._exceptions.MemoryError: Unable to allocate 4.96 TiB for an array with shape (12953, 82172, 640) and data type float64
 
-# Pre-allocate the space to save memory
-batch_size = 8
+# Hyperparameters
+batch_size = 32
 lr = 1e-3
-epochs = 161
+epochs = 501
+intermediate_evel = 10
 
 rfam_list = ["5S_rRNA", "5_8S_rRNA", "tRNA", "ribozyme", "CD-box", "miRNA",
-             "Intron_gpI", "Intron_gpII", "scaRNA", "HACA-box", "riboswitch", "IRES", "leader"]
+             "Intron_gpI", "Intron_gpII", "scaRNA", "HACA-box", "riboswitch", 
+             "IRES", "leader", "mRNA"]
 
 def calculate_binary_metrics(y_true, y_pred, target_class):
     # Convert labels to binary: 1 for the target class, 0 for all others
@@ -89,48 +93,58 @@ def calculate_metric_with_sklearn(predictions: np.ndarray, labels: np.ndarray):
     }
 
 def construct_xy(dataset):
-    chunk_size = 20
-    token_embeddings = np.zeros((len(dataset), 1024, 640))
+
+    max_length = 1024  # Maximum length for batch_tokens
+    token_embeddings = np.zeros((len(dataset), max_length, 640))
     y_labels = np.zeros(len(dataset), dtype=int)
     input_strs = np.empty(len(dataset), dtype=object)
-    seqs = dataset
-    
-    # print("Initial shape of token_embeddings:", token_embeddings.shape)
-    # Divide all the sequences into chunks for processing due to GPU memory limit
+    chunk_size = 20
+
     for i in tqdm(range(0, len(dataset), chunk_size)):
-        data = seqs[i:i + chunk_size]
+        data = dataset[i:i + chunk_size]  # Process in chunks of 20
         data_tuples = [items[0] for items in data]
         data_labels = [items[1] for items in data]
-        
+
         batch_labels, batch_strs, batch_tokens = batch_converter(data_tuples)
-        if batch_tokens.shape[1] > 1024: # print omit data for clarity
-            # print(f"{data} omitted")
-            continue
-        # Use GPU
+        if batch_tokens.shape[1] > max_length:
+            print(batch_tokens.shape[1])
+            
+            exit(0)
+
+        # print(f"Processing batch {i // 20}: batch_tokens shape = {batch_tokens.shape}")
+        # use GPU
         with torch.no_grad():
             results = model(batch_tokens.to(device), repr_layers=[12])
-        # print(batch_tokens.shape)
-
-        emb = results['representations'][12].cpu().numpy()  # Convert embeddings to NumPy
-        # print(f"emb: {emb.shape}")
-        # Check the shape of batch_tokens
-        if batch_tokens.shape[1] > 640:
-            # Apply PCA to reduce to 640 dimensions
-            reshaped_emb = emb.reshape(-1, 640) # (chucksize * oversize embed, 640)
-            pca = PCA(n_components=640)
-            reshaped_emb = pca.fit_transform(reshaped_emb)  # Fit and transform the embeddings      
-            reshaped_back = reshaped_emb.reshape(chunk_size, batch_tokens.shape[1], 640)  
-
-            emb = reshaped_back[:, :640, :] 
-
+        
+        emb = results['representations'][12].cpu().numpy()  
+        # print(f"  Embeddings shape = {emb.shape}")
 
         token_embeddings[i:i+chunk_size, :emb.shape[1], :] = emb
-        input_strs[i:i+chunk_size] = batch_strs
         y_labels[i:i+chunk_size] = data_labels
-    
-    print(f"Done: {y_labels.shape}")
+        input_strs[i:i+chunk_size] = batch_strs
+
+    print(token_embeddings.shape)
     return token_embeddings, y_labels, input_strs
 
+def visualize_feature_maps(feature_maps, epochs):
+    # Assume feature_maps is of shape (batch_size, num_channels, length)
+    batch_size, num_channels, length = feature_maps.shape
+
+    # Create a figure with subplots
+    plt.figure(figsize=(220, 10))
+
+    # Visualize the feature maps for the first sample in the batch
+    for i in range(num_channels):
+        plt.subplot(1, num_channels, i + 1)
+        plt.plot(feature_maps[0, i].detach().cpu().numpy())  # Plot the first sample's feature map
+        plt.title(f'Fea {i + 1}')
+        plt.xlabel('Pos')
+        plt.ylabel('Act')
+
+    plt.tight_layout()
+    plt.savefig(f"feature_maps_{epochs}.png")
+
+    return 
 def train(dataset):
     x_train, y_train, train_seqs = construct_xy(dataset[0])
     x_val, y_val, val_seqs = construct_xy(dataset[2])
@@ -142,7 +156,7 @@ def train(dataset):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     
-    model = RNATypeClassifier(len(rfam_list)).to(device)
+    model = MultiRNAClassifier_CNN(len(rfam_list), 32, 3, 3, 0.2).to(device)
     print(model)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -168,10 +182,10 @@ def train(dataset):
         for batch in train_loader:
             x, y = batch
             x, y = x.to(device).float(), y.to(device).long()
-
+            
+            x = x.view(-1, 1, 640)
             # no need to apply the softmax function since it has been included in the loss function
-            y_pred = model(x)
-
+            y_pred, feature_maps = model(x)
             # y_pred: (B, C) with class probabilities, y shape: (B,) with class indices
             loss = criterion(y_pred, y)
 
@@ -193,8 +207,9 @@ def train(dataset):
         for batch in val_loader:
             x, y = batch
             x, y = x.to(device).float(), y.to(device).long()
-
-            y_pred = model(x)
+            
+            x = x.view(-1, 1, 640)
+            y_pred, feature_maps = model(x)
 
             # y_pred: (B, C) with class probabilities, y shape: (B,) with class indices
             loss = criterion(y_pred, y)
@@ -222,15 +237,19 @@ def train(dataset):
             max_val_acc = val_acc
 
         # show intermediate steps
-        if epoch % 20 == 1:
+        if epoch % intermediate_evel == 1:
             tqdm.write(f'epoch {epoch}/{epochs}: train loss={np.mean(train_loss_history):.6f}, '
                     f'train acc={train_acc:.6f}, '
                     f'val loss={np.mean(val_loss_history):.6f}, '
                     f'val acc={val_acc:.6f}')
 
+        # if epoch == 200:  # Adjust to your preference
+        #     visualize_feature_maps(feature_maps, epoch)
+        
         train_loss_history.append(np.mean(train_losses))
         val_loss_history.append(np.mean(val_losses))
 
+    
     return vizuation(train_loss_history, val_loss_history, train_acc_history, val_acc_history, best_epoch)
 
 def test(dataset, view=0, output_csv='test_results.csv'):
@@ -239,7 +258,7 @@ def test(dataset, view=0, output_csv='test_results.csv'):
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     print(test_seqs)
     test_preds = []
-    model = RNATypeClassifier(len(rfam_list)).to(device)
+    model = MultiRNAClassifier_CNN(len(rfam_list), 32, 3, 3, 0.2).to(device)
     model.load_state_dict(torch.load('rna_type_checkpoint.pt')['model_state_dict'])
     model.eval()
 
@@ -249,9 +268,10 @@ def test(dataset, view=0, output_csv='test_results.csv'):
         x, y = batch
         x, y = x.to(device).float(), y.to(device).long()
 
-        output = model(x)
+        x = x.view(-1, 1, 640)
+        output, feature_maps = model(x)
 
-        _, y_pred = torch.max(output.data, 1)  # Get predicted class indices
+        _, y_pred = torch.max(output, 1)  # Get predicted class indices
         test_preds.append(y_pred.cpu().numpy())
 
         # Store each sample's data, prediction, and truth for CSV
@@ -278,7 +298,7 @@ def test(dataset, view=0, output_csv='test_results.csv'):
             # use zip for the csv construction here
        
         df = pd.DataFrame.from_dict(results_per_class, orient='index')
-        df['Class Label'] = ["5S_rRNA", "5_8S_rRNA", "tRNA", "ribozyme", "CD-box", "miRNA", "Intron_gpI", "Intron_gpII", "scaRNA", "HACA-box", "riboswitch", "IRES", "leader"]
+        df['Class Label'] = ["5S_rRNA", "5_8S_rRNA", "tRNA", "ribozyme", "CD-box", "miRNA", "Intron_gpI", "Intron_gpII", "scaRNA", "HACA-box", "riboswitch", "IRES", "leader", "mRNA"]
         df = df[['Class Label', 'Confusion Matrix', 'True Positives', 'True Negatives', 
          'False Positives', 'False Negatives', 'Accuracy', 'Precision', 'Recall', 'F1 Score', 'MCC']]
         numeric_columns = ['Accuracy', 'Precision', 'Recall', 'F1 Score', 'MCC']
