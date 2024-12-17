@@ -18,8 +18,9 @@ pip install -r requirements.txt
 ```
 
 > Run the application
-
+ 
 ```python
+cd ./website
 python run app.py
 ```
 Check the web application at `http://127.0.0.1:(port number)`
