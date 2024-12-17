@@ -1,10 +1,9 @@
 # bio_llm
 
 ### ✨ Quick Set-up (For Your Reference)
+Using Python **3.8.19**, packaged by **conda-forge**
 
 > Use python virtual environment
-
-Using Python 3.8.19, packaged by conda-forge
 
 ```python
 python -m venv venv
