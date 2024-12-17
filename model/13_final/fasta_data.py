@@ -63,5 +63,7 @@ def map_rna(sequence):
   mapped_sequence = ''.join(mapp.get(base, base) for base in sequence)  
   return mapped_sequence
 
+
 if __name__ == "__main__":
   group_data()
+  

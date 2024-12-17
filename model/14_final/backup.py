@@ -14,10 +14,9 @@ from tqdm import tqdm  # for showing progress
 import matplotlib.pyplot as plt
 from fasta_data import group_data
 from sklearn.decomposition import PCA
-from dslayer import MultiRNAClassifier_CNN, RNATypeDataset, RNATypeClassifier
+from dslayer import MultiRNAClassifier_CNN, RNATypeDataset, EarlyStopper
 import sklearn
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, matthews_corrcoef, accuracy_score
-import time
 # max_length = 0
 # for i in tqdm(range(0, len(seqs), chunk_size)):
 #     data = seqs[i:i + chunk_size]
@@ -28,11 +27,17 @@ import time
 #     token_embeddings = np.zeros((len(labels), max_length, 640))
 # numpy.core._exceptions.MemoryError: Unable to allocate 4.96 TiB for an array with shape (12953, 82172, 640) and data type float64
 
-# Hyperparameters
+# Training hyperparameters
 batch_size = 32
 lr = 1e-3
-epochs = 501
-intermediate_evel = 10
+epochs = 7
+intermediate_evel = 2 # involves early stopper mechanism
+
+# Model hyperparameters 
+num_channels = 32
+conv_layers = 3
+kernel_size = 3
+dropout_rate = 0.2
 
 rfam_list = ["5S_rRNA", "5_8S_rRNA", "tRNA", "ribozyme", "CD-box", "miRNA",
              "Intron_gpI", "Intron_gpII", "scaRNA", "HACA-box", "riboswitch", 
@@ -108,9 +113,8 @@ def construct_xy(dataset):
         batch_labels, batch_strs, batch_tokens = batch_converter(data_tuples)
         if batch_tokens.shape[1] > max_length:
             print(batch_tokens.shape[1])
-            
             exit(0)
-
+        # print(batch_tokens)
         # print(f"Processing batch {i // 20}: batch_tokens shape = {batch_tokens.shape}")
         # use GPU
         with torch.no_grad():
@@ -126,25 +130,73 @@ def construct_xy(dataset):
     print(token_embeddings.shape)
     return token_embeddings, y_labels, input_strs
 
-def visualize_feature_maps(feature_maps, epochs):
+def visualize_feature_maps(feature_maps, epochs, model):
     # Assume feature_maps is of shape (batch_size, num_channels, length)
-    batch_size, num_channels, length = feature_maps.shape
+    # batch_size, num_channels, length = feature_maps.shape
+    
+    print(feature_maps[-1].shape)
+    
+    feature_maps_np = [fm.cpu().detach().numpy() for fm in feature_maps]
+    feature_map_np = feature_maps_np[-1]  # The feature map of the last conv layer
 
-    # Create a figure with subplots
-    plt.figure(figsize=(220, 10))
+    # Select a specific feature map (e.g., first batch and first channel)
+    selected_feature_map = feature_map_np[0, :, 0]  # Shape: (length of feature map)
+    print(selected_feature_map.shape)
 
-    # Visualize the feature maps for the first sample in the batch
-    for i in range(num_channels):
-        plt.subplot(1, num_channels, i + 1)
-        plt.plot(feature_maps[0, i].detach().cpu().numpy())  # Plot the first sample's feature map
-        plt.title(f'Fea {i + 1}')
-        plt.xlabel('Pos')
-        plt.ylabel('Act')
-
+    # Plotting the feature maps (Averaging the total of each feature maps in each channel)
+    plt.figure(figsize=(10, 5))
+    plt.plot(selected_feature_map, label='Feature Map')  # Plot the selected feature map
+    plt.title('Feature Map')
+    plt.xlabel('Position')
+    plt.ylabel('Activation')
+    plt.legend(fontsize="small", loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
     plt.savefig(f"feature_maps_{epochs}.png")
 
+    gradients = model.layers[-5].weight.grad  # Last Conv1d layer
+    
+    pooled_gradients = torch.mean(gradients, dim=[1, 2], keepdim=True)
+    print(gradients.shape)
+    print(pooled_gradients.shape)
+    
+    pooled_gradients_np = pooled_gradients.cpu().detach().numpy()
+    weighted_feature_map = selected_feature_map * pooled_gradients_np[:, 0, 0] 
+
+    heatmap = np.mean(weighted_feature_map, axis=0)  
+    heatmap = heatmap.detach().numpy() if isinstance(weighted_feature_map, torch.Tensor) else weighted_feature_map
+    print(heatmap)
+    # Optionally visualize the heatmap
+    plt.figure(figsize=(10, 5))
+    plt.imshow(heatmap, aspect='auto', cmap='jet')  # Use imshow for heatmap visualization
+    plt.title('Heatmap')
+    plt.colorbar()
+    plt.xlabel('Position')
+    plt.ylabel('Importance')
+    plt.tight_layout()
+    plt.savefig(f"heatmap_{epochs}.png")
+
+    # plt.figure(figsize=(10, 5))
+    # plt.plot(heatmap, color='red', alpha=0.5, label='Grad-CAM Heatmap')
+    # plt.title('Grad-CAM from last conv1D')
+    # plt.xlabel('Position')
+    # plt.ylabel('Importance')
+    # plt.legend()
+    # plt.tight_layout()
+    # plt.savefig(f"gradcam_map.png")
+
+    # Plot the input (?)
+    # plt.subplot(2, 1, 1)
+    # plt.plot(input_tensor[0][0].detach().numpy(), label='Input Signal')
+    # plt.title('Input Signal')
+    # plt.xlabel('Position')
+    # plt.ylabel('Amplitude')
+    # plt.legend()
+
+    # Plot the heatmap
+    # plt.subplot(2, 1, 2)
+
     return 
+
 def train(dataset):
     x_train, y_train, train_seqs = construct_xy(dataset[0])
     x_val, y_val, val_seqs = construct_xy(dataset[2])
@@ -155,8 +207,7 @@ def train(dataset):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    
-    model = MultiRNAClassifier_CNN(len(rfam_list), 32, 3, 3, 0.2).to(device)
+    model = MultiRNAClassifier_CNN(len(rfam_list), num_channels, conv_layers, kernel_size, dropout_rate).to(device)
     print(model)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -169,6 +220,8 @@ def train(dataset):
 
     train_acc_history = []
     val_acc_history = []
+
+    early_stopper = EarlyStopper(patience=2, min_delta=0.01)
 
     for epoch in tqdm(range(epochs)):
 
@@ -217,7 +270,7 @@ def train(dataset):
             val_losses.append(loss.item())
             val_preds.append(torch.max(y_pred.detach(),1)[1])
             val_targets.append(y)
-
+            
         # calculate the accuracy
         train_preds = torch.cat(train_preds, dim=0)
         train_targets = torch.cat(train_targets, dim=0)
@@ -232,25 +285,29 @@ def train(dataset):
 
         # save the model checkpoint for the best validation accuracy
         if val_acc > max_val_acc:
-            torch.save({'model_state_dict': model.state_dict()}, 'rna_type_checkpoint.pt')
+            torch.save({'model_state_dict': model.state_dict()}, 'rna_type_checkpoint.pt')  
             best_epoch = epoch
             max_val_acc = val_acc
 
-        # show intermediate steps
-        if epoch % intermediate_evel == 1:
-            tqdm.write(f'epoch {epoch}/{epochs}: train loss={np.mean(train_loss_history):.6f}, '
-                    f'train acc={train_acc:.6f}, '
-                    f'val loss={np.mean(val_loss_history):.6f}, '
-                    f'val acc={val_acc:.6f}')
-
-        # if epoch == 200:  # Adjust to your preference
-        #     visualize_feature_maps(feature_maps, epoch)
-        
         train_loss_history.append(np.mean(train_losses))
         val_loss_history.append(np.mean(val_losses))
 
-    
-    return vizuation(train_loss_history, val_loss_history, train_acc_history, val_acc_history, best_epoch)
+        # show intermediate steps
+        if epoch % intermediate_evel == 1:
+            tqdm.write(f'Epoch {epoch}/{epochs}: train loss={np.mean(train_loss_history):.6f}, '
+                    f'train acc={train_acc:.6f}, '
+                    f'val loss={np.mean(val_loss_history):.6f}, '
+                    f'val acc={val_acc:.6f}') 
+            if early_stopper.early_stop(np.mean(val_loss_history)):  # Early stopper triggers when val_acc worse than the best one     
+                tqdm.write("Early Stopping Trigger.")   
+                visualize_feature_maps(feature_maps, epoch, model)
+                return visualization(train_loss_history, val_loss_history, train_acc_history, val_acc_history, best_epoch)  
+                
+            
+    visualize_feature_maps(feature_maps, epoch, model)
+    tqdm.write(f"Best model at epoch {best_epoch} saved.")  
+
+    return visualization(train_loss_history, val_loss_history, train_acc_history, val_acc_history, best_epoch)
 
 def test(dataset, view=0, output_csv='test_results.csv'):
     x_test, y_test, test_seqs = construct_xy(dataset[1])
@@ -258,7 +315,7 @@ def test(dataset, view=0, output_csv='test_results.csv'):
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     print(test_seqs)
     test_preds = []
-    model = MultiRNAClassifier_CNN(len(rfam_list), 32, 3, 3, 0.2).to(device)
+    model = MultiRNAClassifier_CNN(len(rfam_list), num_channels, conv_layers, kernel_size, dropout_rate).to(device)
     model.load_state_dict(torch.load('rna_type_checkpoint.pt')['model_state_dict'])
     model.eval()
 
@@ -270,10 +327,12 @@ def test(dataset, view=0, output_csv='test_results.csv'):
 
         x = x.view(-1, 1, 640)
         output, feature_maps = model(x)
-
+        print(x[:,:,10])
+        print(output)
         _, y_pred = torch.max(output, 1)  # Get predicted class indices
         test_preds.append(y_pred.cpu().numpy())
-
+        print(x.shape, output.shape, y_pred.shape)
+        
         # Store each sample's data, prediction, and truth for CSV
         all_data.extend(zip(test_seqs, y.cpu().numpy(), y_pred.cpu().numpy()))
 
@@ -311,7 +370,7 @@ def test(dataset, view=0, output_csv='test_results.csv'):
 
     return
 
-def vizuation(train_loss_history, val_loss_history, train_acc_history, val_acc_history, best_epoch):
+def visualization(train_loss_history, val_loss_history, train_acc_history, val_acc_history, best_epoch):
     plt.figure(figsize=(8, 6))
     plt.plot(train_loss_history, label='train loss')
     plt.plot(val_loss_history, label='val loss')
@@ -338,6 +397,37 @@ def vizuation(train_loss_history, val_loss_history, train_acc_history, val_acc_h
     
     plt.savefig("accuracy.png")
 
+
+def test_one(seq):
+    data = [("RNA1", seq)]
+    model, alphabet = fm.pretrained.rna_fm_t12()
+    batch_converter = alphabet.get_batch_converter()
+    model.to(device)
+    batch_labels, batch_strs, batch_tokens = batch_converter(data)
+    print(batch_strs)
+    # Extract embeddings (on CPU)
+    with torch.no_grad():
+        results = model(batch_tokens.to(device), repr_layers=[12])
+        
+    emb = results['representations'][12].cpu().numpy()
+    token_embeddings = np.zeros((1, 1024, 640))
+    token_embeddings[:, :emb.shape[1], :] = emb
+    token_embeddings = torch.from_numpy(token_embeddings)
+
+    prediction_model = MultiRNAClassifier_CNN(len(rfam_list), num_channels, conv_layers, kernel_size, dropout_rate).to(device)
+    prediction_model.load_state_dict(torch.load('./rna_type_checkpoint.pt')['model_state_dict'], strict=False)
+    prediction_model.eval()
+    
+    embedding = token_embeddings.mean(dim=1, keepdim=True) # Compute mean along the second dimension, done in RNATypeDataset)
+    x = embedding.to(device).float()
+
+    output, feature_maps = prediction_model(x)  
+    print(output)
+    _, y_pred = torch.max(output, 1)  # Get predicted class indices
+    print(y_pred)
+
+    return y_pred
+
 if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'using {device} device')
@@ -350,9 +440,11 @@ if __name__ == "__main__":
     print(model)
 
     dataset = group_data() # Assuming get_data returns seqs, labels, rfam_list
-    # train(dataset)
-    # test(dataset, 0) #overall evaluation
-    test(dataset, 1) #evaluation on classes
+    # # train(dataset)  
+    test(dataset, 0) #overall evaluation
+    # test(dataset, 1) #evaluation on classes
+    # prediction = test_one("CAAAGCAAGAAGGAGCGCCCGCTTCTCACCTGATCGACGCACAGCGCAGTTGACAGGTCTACATGTAATAATGTCTCATGATGACAAACATGAGTGTGGGCGTCGTATGCCCACACTCTTTTGTGTTG")
+    # print(prediction)
 
 
 # token_embeddings = np.mean(token_embeddings, axis=1)
