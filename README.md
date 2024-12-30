@@ -1,4 +1,6 @@
-# bio_llm
+# bio_dlm_for_rna
+
+## STILL IN DEVELOPMENT !!
 
 ### ✨ Quick Set-up (For Your Reference)
 Using Python **3.8.19**, packaged by **conda-forge**
