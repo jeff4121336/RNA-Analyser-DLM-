@@ -194,8 +194,6 @@ def generate_embed(dataset, model, segment_length):
 			results = model(batch_tokens.to(device), repr_layers=[12])
 			emb = results['representations'][12].cpu().numpy()  # Shape: (Num of segments, Length of each segments, embedding dimension)
 		
-		
-		# for emb != (1, 964, 640):
 		for j in range(emb.shape[0]):
 			token_embeddings.append(emb[j:j+1])
 
@@ -203,11 +201,6 @@ def generate_embed(dataset, model, segment_length):
 
 		for j in range(labels.shape[0] // segment_batch_size):
 			y_labels.append(labels[segment_batch_size * j : segment_batch_size * (j+1)]) 
-			# print(f"{j} : {labels[segment_batch_size * j : segment_batch_size * (j+1)]}")
-			# if labels.shape != (segment_batch_size, ):
-			# 	# print(labels)
-			# 	print(labels.shape)
-			# print(labels[segment_batch_size * i: segment_batch_size * (i+1)].shape)
 
 		for _, strs in enumerate(batch_strs):
 			sequence_str.append(strs)
@@ -394,16 +387,6 @@ def test(x_test, y_test, view=0):
 		x, y = batch
 		x, y = x.to(device).float(), y.to(device).long()
 
-		# padding_token_count = []
-		# for i in range(y.shape[0]):
-		# 	c = 0
-		# 	for j in range(y.shape[1]):
-		# 		if y[i, j] == 14:
-		# 			c += 1
-		# 	c = 30 - c
-		# 	padding_token_count.append(c)
-		# padding_token_count = torch.tensor(padding_token_count, device=device, dtype=torch.float32)
-		# get sequences label here
 		y = y[:,0] # (16, )
 		output, feature_maps = model(x)
 		# Step 1: Sum across the second dimension (size 30) [16,16]
@@ -443,159 +426,148 @@ def test(x_test, y_test, view=0):
 	return
 
 
-def test_one(sequence):
+#def test_one(sequence):
 
-	# Data preparation
-	sequence = ''.join({'T' : 'U'}.get(base, base) for base in sequence) 
-	data = [[("RNA1", sequence), 99]]
-	crop_seq = crop_sequences(data)
+#	# Data preparation
+#	sequence = ''.join({'T' : 'U'}.get(base, base) for base in sequence) 
+#	data = [[("RNA1", sequence), 99]]
+#	crop_seq = crop_sequences(data)
 
-	segments = []
-	for i, seg in enumerate(crop_seq[0]):
-		segments.append(seg[0])
+#	segments = []
+#	for i, seg in enumerate(crop_seq[0]):
+#		segments.append(seg[0])
 
-	segment_tuple = []
-	segment_batch_size = 30
-	segment_length = 32
-	maximum_length = segment_batch_size * segment_length
-	length_wo_padding = []
+#	segment_tuple = []
+#	segment_batch_size = 30
+#	segment_length = 32
+#	maximum_length = segment_batch_size * segment_length
+#	length_wo_padding = []
 	
-	# Done with segments input for embedding
-	for k in range(0, len(segments), segment_batch_size):
-		segment = ''.join(segments[k:k + segment_batch_size])
-		length_wo_padding.append(len(segment) // segment_length)
-		sequence_id = f"Sequence {i} Segment {k} to {min(k + segment_batch_size, len(segments)) - 1}"
-		segment_padding = '-' * (maximum_length - len(segment))
-		segment = segment + segment_padding
-		segment_tuple.append((sequence_id, segment))
+#	# Done with segments input for embedding
+#	for k in range(0, len(segments), segment_batch_size):
+#		segment = ''.join(segments[k:k + segment_batch_size])
+#		length_wo_padding.append(len(segment) // segment_length)
+#		sequence_id = f"Sequence {i} Segment {k} to {min(k + segment_batch_size, len(segments)) - 1}"
+#		segment_padding = '-' * (maximum_length - len(segment))
+#		segment = segment + segment_padding
+#		segment_tuple.append((sequence_id, segment))
 	
-	# Embedding model
-	model, alphabet = fm.pretrained.rna_fm_t12()
-	batch_converter = alphabet.get_batch_converter()
-	model.to(device)
-	# print(model)
+#	# Embedding model
+#	model, alphabet = fm.pretrained.rna_fm_t12()
+#	batch_converter = alphabet.get_batch_converter()
+#	model.to(device)
+#	# print(model)
 	
-	batch_labels, batch_strs, batch_tokens = batch_converter(segment_tuple)
-	# print(batch_tokens.shape) # (1, 962)
-	with torch.no_grad():
-		results = model(batch_tokens.to(device), repr_layers=[12])
-		emb = results['representations'][12].cpu().numpy() 
-	# print(emb.shape) # (1, 962, 640)
+#	batch_labels, batch_strs, batch_tokens = batch_converter(segment_tuple)
+#	# print(batch_tokens.shape) # (1, 962)
+#	with torch.no_grad():
+#		results = model(batch_tokens.to(device), repr_layers=[12])
+#		emb = results['representations'][12].cpu().numpy() 
+#	# print(emb.shape) # (1, 962, 640)
 
-	# Saving returns
-	token_embeddings = []
-	for j in range(emb.shape[0]):
-		token_embeddings.append(emb[j:j+1])
-	token_embeddings = np.concatenate(token_embeddings, axis=0)
-	token_embeddings = token_embeddings[:, 1:-1, :] # (1, 960, 640)
+#	# Saving returns
+#	token_embeddings = []
+#	for j in range(emb.shape[0]):
+#		token_embeddings.append(emb[j:j+1])
+#	token_embeddings = np.concatenate(token_embeddings, axis=0)
+#	token_embeddings = token_embeddings[:, 1:-1, :] # (1, 960, 640)
 
-	# Prepare Model 2 input, Mean over dim=1 with segment_length 32 -> (1, 30, 640)
-	temp = []
-	mean_idx = [i for i in range(0, token_embeddings.shape[1], segment_length)]
-	for i in range(token_embeddings.shape[0]):
-		for j in range(len(mean_idx)): # Use the mean of the RNA-FM embedding across 32 items
-			temp.append(np.mean(token_embeddings[i][mean_idx[j]: mean_idx[j]+32], axis=0))
+#	# Prepare Model 2 input, Mean over dim=1 with segment_length 32 -> (1, 30, 640)
+#	temp = []
+#	mean_idx = [i for i in range(0, token_embeddings.shape[1], segment_length)]
+#	for i in range(token_embeddings.shape[0]):
+#		for j in range(len(mean_idx)): # Use the mean of the RNA-FM embedding across 32 items
+#			temp.append(np.mean(token_embeddings[i][mean_idx[j]: mean_idx[j]+32], axis=0))
 		
-	mean_token_embeddings = torch.tensor(np.array(temp))
-	x = mean_token_embeddings.to(device).float()
-	# print(x.shape)
-	x = x.view(1, 30, 640)
+#	mean_token_embeddings = torch.tensor(np.array(temp))
+#	x = mean_token_embeddings.to(device).float()
+#	# print(x.shape)
+#	x = x.view(1, 30, 640)
 
-	# model 2
-	model = RNAClassifier(len(labels_ref), num_channels, kernel_size, dropout_rate, padding).to(device)
-	model.load_state_dict(torch.load('rna_type_checkpoint.pt')['model_state_dict'])
-	model.eval()
-	model.zero_grad()
-	# print(model)
+#	# model 2
+#	model = RNAClassifier(len(labels_ref), num_channels, kernel_size, dropout_rate, padding).to(device)
+#	model.load_state_dict(torch.load('rna_type_checkpoint.pt')['model_state_dict'])
+#	model.eval()
+#	model.zero_grad()
+#	# print(model)
 	
-	output, feature_map = model(x) # y_pred: (1, 30, 15), feature_map: (1, 30, 640)
-	# print(x.cpu().numpy())
+#	output, feature_map = model(x) # y_pred: (1, 30, 15), feature_map: (1, 30, 640)
+#	# print(x.cpu().numpy())
 
-	final_output = torch.sum(output, dim=1)  # Sum along dimension 1
-	final_output = final_output[:, :-2]  # Remove the last two elements
-	min_val = final_output.min(dim=1, keepdim=True).values  # Get min value for each sample
-	max_val = final_output.max(dim=1, keepdim=True).values  # Get max value for each sample
+#	final_output = torch.sum(output, dim=1)  # Sum along dimension 1
+#	final_output = final_output[:, :-2]  # Remove the last two elements
+#	min_val = final_output.min(dim=1, keepdim=True).values  # Get min value for each sample
+#	max_val = final_output.max(dim=1, keepdim=True).values  # Get max value for each sample
 	
-	# Avoid division by zero by adding a small constant (epsilon)
-	epsilon = 1e-8
-	final_output_normalized = (final_output - min_val) / (max_val - min_val + epsilon)
-	prob, return_prediction = torch.max(final_output_normalized, dim=1)
-	# print(prob, final_output_normalized, return_prediction)
+#	# Avoid division by zero by adding a small constant (epsilon)
+#	epsilon = 1e-8
+#	final_output_normalized = (final_output - min_val) / (max_val - min_val + epsilon)
+#	prob, return_prediction = torch.max(final_output_normalized, dim=1)
+#	# print(prob, final_output_normalized, return_prediction)
 	
-	print(f"Predicted RNA Type: {return_prediction}\nMin-Max Scaling Score for all RNA Type: {prob}")
+#	print(f"Predicted RNA Type: {return_prediction}\nMin-Max Scaling Score for all RNA Type: {prob}")
 
-	target_labels = []
-	class_label = return_prediction
-	for i in range(len(length_wo_padding)):
-		target_labels.append([class_label] * segment_batch_size)
+#	target_labels = []
+#	class_label = return_prediction
+#	for i in range(len(length_wo_padding)):
+#		target_labels.append([class_label] * segment_batch_size)
 
-	target_tensor = torch.tensor(target_labels)
-	target_tensor = target_tensor.view(30, ).to(device)
-	y_pred_reshaped = output.view(-1, 15)
+#	target_tensor = torch.tensor(target_labels)
+#	target_tensor = target_tensor.view(30, ).to(device)
+#	y_pred_reshaped = output.view(-1, 15)
 
-	criterion = nn.CrossEntropyLoss()
-	# criterion(y_pred.view(-1, y_pred.shape[-1]), y.view(-1)) 
-	loss = criterion(y_pred_reshaped, target_tensor)
-	# print(y_pred_reshaped.shape, target_tensor.shape)
-	loss.backward()
+#	criterion = nn.CrossEntropyLoss()
+#	# criterion(y_pred.view(-1, y_pred.shape[-1]), y.view(-1)) 
+#	loss = criterion(y_pred_reshaped, target_tensor)
+#	# print(y_pred_reshaped.shape, target_tensor.shape)
+#	loss.backward()
 
-	weight_gradients = model.dense2.dense1.weight.grad.detach()
-	bias_gradients = model.dense2.dense1.bias.grad.detach()
+#	weight_gradients = model.dense2.dense1.weight.grad.detach()
+#	bias_gradients = model.dense2.dense1.bias.grad.detach()
 		
-	conv_output = model.conv1(x).detach()
-	pooled_gradients = torch.mean(weight_gradients, dim=0) + torch.mean(bias_gradients, dim=0)
-	for i in range(conv_output.size(1)):
-		conv_output[0, i, :] *= pooled_gradients[i]
+#	conv_output = model.conv1(x).detach()
+#	pooled_gradients = torch.mean(weight_gradients, dim=0) + torch.mean(bias_gradients, dim=0)
+#	for i in range(conv_output.size(1)):
+#		conv_output[0, i, :] *= pooled_gradients[i]
 
-	heatmap = torch.mean(conv_output, dim=2).detach().cpu().numpy()  # Average across the feature maps
-	heatmap = np.maximum(heatmap, 0)  # Keep positive contribution
-	heatmap /= np.max(heatmap)
-	# print(heatmap)
-	original_input = x.squeeze().cpu().numpy()  # Remove batch dimension if needed
-	print(original_input.shape)
-	if isinstance(heatmap, torch.Tensor):
-		heatmap = heatmap.squeeze().cpu().numpy()  # Remove batch and channel dimensions, move to CPU, then convert to NumPy
-	else:
-		heatmap = heatmap.squeeze()
+#	heatmap = torch.mean(conv_output, dim=2).detach().cpu().numpy()  # Average across the feature maps
+#	heatmap = np.maximum(heatmap, 0)  # Keep positive contribution
+#	heatmap /= np.max(heatmap)
+#	# print(heatmap)
+#	original_input = x.squeeze().cpu().numpy()  # Remove batch dimension if needed
+#	print(original_input.shape)
+#	if isinstance(heatmap, torch.Tensor):
+#		heatmap = heatmap.squeeze().cpu().numpy()  # Remove batch and channel dimensions, move to CPU, then convert to NumPy
+#	else:
+#		heatmap = heatmap.squeeze()
 
-	# Normalize the heatmap to the range [0, 1]
-	heatmap = (heatmap - np.min(heatmap)) / (np.max(heatmap) - np.min(heatmap))
-	# print(heatmap.shape)
-	
-	# # Create a figure
-	# plt.figure(figsize=(10, 5))
-	# plt.bar(range(1, 31), heatmap, color='blue')  # Bar plot for each segment
-	# plt.xlabel('Segment Index')
-	# plt.ylabel('Average Activation')
-	# plt.title('Average Activation per Segment')
-	# plt.xticks(range(1, 31))  # Set x-ticks for each segment
+#	# Normalize the heatmap to the range [0, 1]
+#	heatmap = (heatmap - np.min(heatmap)) / (np.max(heatmap) - np.min(heatmap))
+#	heatmap = np.random.rand(30, 30)
 
-	# plt.savefig("importance1.png")
-	heatmap = np.random.rand(30, 30)
+#	# Create a figure
+#	plt.figure(figsize=(10, 8))
 
-	# Create a figure
-	plt.figure(figsize=(10, 8))
+#	# Draw the heatmap
+#	plt.imshow(heatmap, cmap='Blues', aspect='auto')  # Use 'Blues' colormap for color gradation
+#	plt.colorbar(label='Activation Level')  # Optional: add a color bar to indicate values
 
-	# Draw the heatmap
-	plt.imshow(heatmap, cmap='Blues', aspect='auto')  # Use 'Blues' colormap for color gradation
-	plt.colorbar(label='Activation Level')  # Optional: add a color bar to indicate values
+#	# Set labels and title
+#	plt.xlabel('Segment Index')
+#	plt.ylabel('Segment Index')
+#	plt.title('Heatmap of Average Activation per Segment')
 
-	# Set labels and title
-	plt.xlabel('Segment Index')
-	plt.ylabel('Segment Index')
-	plt.title('Heatmap of Average Activation per Segment')
+#	# Set x-ticks and y-ticks
+#	plt.xticks(ticks=np.arange(30), labels=np.arange(1, 31))
+#	plt.yticks(ticks=np.arange(30), labels=np.arange(1, 31))
 
-	# Set x-ticks and y-ticks
-	plt.xticks(ticks=np.arange(30), labels=np.arange(1, 31))
-	plt.yticks(ticks=np.arange(30), labels=np.arange(1, 31))
-
-	# Save the figure
-	plt.savefig("importance_heatmap.png")
-	return
+#	# Save the figure
+#	plt.savefig("importance_heatmap.png")
+#	return
 
 
 if __name__ == "__main__":
-	# # Extract data from files and label them all
+	# Extract data from files and label them all
 	data_dir = [glob.glob(r'./data/fa_train*')[0], glob.glob(r'./data/fa_test*')[0], glob.glob(r'./data/fa_val*')[0]]
 	sequences_labels_pairs  = label_data(data_dir)
 	
@@ -609,16 +581,21 @@ if __name__ == "__main__":
 	# Preprocess the data, crop it and apply embedding calculation here
 	data = [crop_sequences(sequences_labels_pairs[i]) for i in range(3)]
 	# Given segment_length=32, overlap=10, (N, 34, 640) for each sequence, train/test/val data -> N ~ 50
-	# x_val, y_val, val_str, val_idx = generate_embed(data[2], embedding_model, 32)
-	# print(x_val.shape, y_val.shape, val_str.shape, val_idx.shape) # (741, 964, 640) (741, 30) (741,) (700, 2)
-	# x_train, y_train, train_str, train_idx = generate_embed(data[0], embedding_model, 32)
-	# print(x_train.shape, y_train.shape, train_str.shape) 
+	# Comment out train and val generate embed if using test function, it will quicker.
+	x_val, y_val, val_str, val_idx = generate_embed(data[2], embedding_model, 32)
+	print(x_val.shape, y_val.shape, val_str.shape, val_idx.shape) # (741, 964, 640) (741, 30) (741,) (700, 2)
+	x_train, y_train, train_str, train_idx = generate_embed(data[0], embedding_model, 32)
+	print(x_train.shape, y_train.shape, train_str.shape) 
 	x_test, y_test, test_str, test_idx = generate_embed(data[1], embedding_model, 32)
 	print(x_test.shape, y_test.shape, test_str.shape)
 
-	# train model with constructed embedding
+	# train model
 	# train(x_train, y_train, x_val, y_val) 
+
+	# test model
 	test(x_test, y_test, 1)
+
+	# test_one is for the web interface, you can simply ignore it.
 	# test_one("AACTTTCAGCAGTGGAWGTCTAGGCTCGCACATCGANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCGAATTGCAGAATTCAGTGAGTCATCGAAATTTTGAACGCATATTGCACTTCCGGGTTATGCCTGGAAGTATGTCTGTATCAGTGTCC")
 	# test_one("GACTCTCGGCAACGGATATCTCGACTCTCGCATCGATGAAGAAAGTAGCAAAATGCGATACGTGGTGTGAATTGGACAATCCCGTGAATCGTCGAATCTTTGAACGCAAGTTGCGCCGAAGCCTTCCGACCGGGGGCACGTCTGCTTGGGCGTTA")
 	# test_one("ATTTCCATTGCTGCACCGTGAGTCGTCAGCAGGGCTTAGAATTGCTGGAGAATTGACTTTGTGAAAAGACTATTCTGTCTTGAAATTCCATCTCTTAGTTTTCCTTAAGAACATACAGAAACC")

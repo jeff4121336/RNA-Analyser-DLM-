@@ -447,7 +447,7 @@ def test(x_test, y_test, view=0):
 	return
 
 
-def test_one(sequence):
+#def test_one(sequence):
 
 	sequence = ''.join({'T' : 'U'}.get(base, base) for base in sequence) 
 	# print(sequence)
@@ -556,8 +556,8 @@ def test_one(sequence):
 	# Display the heatmap
 	plt.imshow(saliency_normalized_np, cmap='hot', aspect='auto', extent=[0, 30, 0, 1])  # Set extent for clarity
 	plt.colorbar(label='Saliency Score')
+    
 	# Remove ylim or set it to fit better
-	
 	plt.title(f'Saliency Map for Class {class_index}')
 	plt.xlabel('Segments')
 	plt.ylabel('Saliency Score')
@@ -574,23 +574,29 @@ if __name__ == "__main__":
 	# Declare embedding model
 	embedding_model, alphabet = fm.pretrained.rna_fm_t12()
 	batch_converter = alphabet.get_batch_converter()
-
+	
+  
 	embedding_model.to(device)
 	embedding_model.eval()
 
 	# Preprocess the data, crop it and apply embedding calculation here
 	data = [crop_sequences(sequences_labels_pairs[i]) for i in range(3)]
 	# Given segment_length=32, overlap=10, (N, 34, 640) for each sequence, train/test/val data -> N ~ 50
-	# x_val, y_val, val_str, val_idx = generate_embed(data[2], embedding_model, 32)
-	# print(x_val.shape, y_val.shape, val_str.shape, val_idx.shape) # (741, 964, 640) (741, 30) (741,) (700, 2)
-	# x_train, y_train, train_str, train_idx = generate_embed(data[0], embedding_model, 32)
-	# print(x_train.shape, y_train.shape, train_str.shape) 
+	# Comment out train and val generate embed if using test function, it will quicker.
+	x_val, y_val, val_str, val_idx = generate_embed(data[2], embedding_model, 32)
+	print(x_val.shape, y_val.shape, val_str.shape, val_idx.shape) # (741, 964, 640) (741, 30) (741,) (700, 2)
+	x_train, y_train, train_str, train_idx = generate_embed(data[0], embedding_model, 32)
+	print(x_train.shape, y_train.shape, train_str.shape) 
 	x_test, y_test, test_str, test_idx = generate_embed(data[1], embedding_model, 32)
 	print(x_test.shape, y_test.shape, test_str.shape)
 
-	# train model with constructed embedding
+	# train model
 	# train(x_train, y_train, x_val, y_val) 
+
+	# test model
 	test(x_test, y_test, 1)
+
+
 	# test_one("GACTCTCGGCAACGGATATCTCGACTCTCGCATCGATGAAGAAAGTAGCAAAATGCGATACGTGGTGTGAATTGGACAATCCCGTGAATCGTCGAATCTTTGAACGCAAGTTGCGCCGAAGCCTTCCGACCGGGGGCACGTCTGCTTGGGCGTTA")
 
 
