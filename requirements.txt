@@ -119,8 +119,8 @@ torchvision==0.19.1
 tqdm==4.66.5
 traitlets==5.14.3
 transformers==4.29.2
-# Editable install with no version control (triton==3.0.0)
--e /home/jeff_lab/fyp/dnabert/triton/python
+## Editable install with no version control (triton==3.0.0)
+#-e /home/jeff_lab/fyp/dnabert/triton/python
 typing_extensions==4.12.2
 tzdata==2024.1
 urllib3==2.2.3
