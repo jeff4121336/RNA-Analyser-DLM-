@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from dslayer import RNAClassifier, RNATypeDataset, EarlyStopper
 import time, random, sklearn
 import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, matthews_corrcoef, accuracy_score
 
 torch.autograd.set_detect_anomaly(True)
@@ -564,6 +564,106 @@ def test(x_test, y_test, view=0):
 #	# Save the figure
 #	plt.savefig("importance_heatmap.png")
 #	return
+def kfModel(x, y, num_folds=5, batch_size=16):
+
+	kf = KFold(n_splits=num_folds)
+
+	# train model
+	model = RNAClassifier(len(labels_ref), num_channels, kernel_size, dropout_rate, padding).to(device)
+	criterion = nn.CrossEntropyLoss()
+	optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+	
+	fold_accuracies = []
+	fold_precision = []
+	fold_recall = []
+	fold_f1 = []
+	fold_mcc = []
+
+	for fold, (train_index, test_index) in enumerate(kf.split(x, y[:,0])):
+		print(f'Fold {fold + 1}/{num_folds}')
+		#print(f'Train index: {train_index}, Test index: {test_index}')
+		#print(f'Fold {fold + 1}/{num_folds}, x_train shape: {x[train_index].shape}, x_test shape: {x[test_index].shape}')
+		x_train, x_test = x[train_index], x[test_index]
+		y_train, y_test = y[train_index], y[test_index]
+		
+		train_dataset = RNATypeDataset(x_train, y_train)
+		test_dataset = RNATypeDataset(x_test, y_test)
+		train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+		test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+		
+		for e in tqdm(range(epochs)):
+			#train_losses = []
+			#train_preds = []
+			#train_targets = []
+
+			model.train()
+
+			#print(f'Fold {fold + 1}/{num_folds}, epoches: {e}')
+			for batch in train_loader:
+				x_b, y_b = batch
+				x_b, y_b = x_b.to(device).float(), y_b.to(device).long()
+				y_final = y_b[:, 0]  # Final label (shape: (B,))
+				
+				# Get model predictions
+				y_b_pred, _ = model(x_b)
+				#print(y.shape, y_pred.shape)
+				
+				# Compute final output by summing over segments
+				final_output = torch.sum(y_b_pred, dim=1)
+				final_output[:, -2:] = 0  # Adjust as required
+				#print(y_pred.view(-1, y_pred.shape[-1]).shape)
+				#print(y.view(-1).shape)
+				# Calculate loss for the final label
+				total_loss = criterion(y_b_pred.view(-1, y_b_pred.shape[-1]), y_b.view(-1)) 
+							
+				prob, y_pred_indices = torch.max(final_output, dim=1)
+				# Store predictions and targets
+				#train_losses.append(total_loss.item())
+				#train_preds.append(y_pred_indices)
+				#train_targets.append(y_final)
+
+				optimizer.zero_grad()
+				total_loss.backward()
+				optimizer.step()
+
+			#train_preds = torch.cat(train_preds, dim=0)
+			#train_targets = torch.cat(train_targets, dim=0)
+			#train_acc = (train_preds == train_targets).float().mean().cpu()
+		#print(f'Done Fold {fold + 1}/{num_folds} training')
+
+		model.eval()
+		test_preds = []
+		test_truth = []
+
+		for batch in test_loader:
+			x_b, y_b = batch
+			x_b, y_b = x_b.to(device).float(), y_b.to(device).long()
+			y_b_final = y_b[:, 0]
+			# Get model predictions
+			y_b_pred, _ = model(x_b)			
+			# Compute final output by summing over segments
+			final_output = torch.sum(y_b_pred, dim=1)
+			final_output[:, -2:] = 0  # Adjust as required
+			
+			prob, y_b_pred = torch.max(final_output, dim=1)
+			test_preds.append(y_b_pred.cpu().numpy())	
+			test_truth.append(y_b_final.cpu().numpy())	
+		
+		test_preds = np.concatenate(test_preds)
+		test_truth = np.concatenate(test_truth)
+	
+		result = calculate_metric_with_sklearn(test_truth, test_preds)
+		fold_accuracies.append(result['accuracy'])
+		fold_precision.append(result['precision'])
+		fold_recall.append(result['recall'])
+		fold_f1.append(result['f1'])
+		fold_mcc.append(result['matthews_correlation'])
+		print(f'Folds {fold + 1}: {result}')
+
+
+	print(f'All Folds Accuracy: {np.mean(fold_accuracies)}, Precision: {np.mean(fold_precision)}, Recall: {np.mean(fold_recall)}, F1: {np.mean(fold_f1)}, MCC: {np.mean(fold_mcc)}')
+
+	return
 
 
 if __name__ == "__main__":
@@ -579,68 +679,25 @@ if __name__ == "__main__":
 	embedding_model.eval()
 
 	# Preprocess the data, crop it and apply embedding calculation here
-	data = [crop_sequences(sequences_labels_pairs[i]) for i in range(3)]
+	#data = [crop_sequences(sequences_labels_pairs[i]) for i in range(3)]
 	# Given segment_length=32, overlap=10, (N, 34, 640) for each sequence, train/test/val data -> N ~ 50
 	# Comment out train and val generate embed if using test function, it will quicker.
-	x_val, y_val, val_str, val_idx = generate_embed(data[2], embedding_model, 32)
-	print(x_val.shape, y_val.shape, val_str.shape, val_idx.shape) # (741, 964, 640) (741, 30) (741,) (700, 2)
-	x_train, y_train, train_str, train_idx = generate_embed(data[0], embedding_model, 32)
-	print(x_train.shape, y_train.shape, train_str.shape) 
-	x_test, y_test, test_str, test_idx = generate_embed(data[1], embedding_model, 32)
-	print(x_test.shape, y_test.shape, test_str.shape)
+	#x_val, y_val, val_str, val_idx = generate_embed(data[2], embedding_model, 32)
+	#print(x_val.shape, y_val.shape, val_str.shape, val_idx.shape) # (741, 964, 640) (741, 30) (741,) (700, 2)
+	#x_train, y_train, train_str, train_idx = generate_embed(data[0], embedding_model, 32)
+	#print(x_train.shape, y_train.shape, train_str.shape) 
+	#x_test, y_test, test_str, test_idx = generate_embed(data[1], embedding_model, 32)
+	#print(x_test.shape, y_test.shape, test_str.shape)
 
 	# train model
 	# train(x_train, y_train, x_val, y_val) 
-
+	sequences_labels_pairs_kf = sequences_labels_pairs[0] + sequences_labels_pairs[1] + sequences_labels_pairs[2]
+	data_kf = crop_sequences(sequences_labels_pairs_kf)
+	x_kf, y_kf, kf_str, kf_idx = generate_embed(data_kf, embedding_model, 32) 
 	# test model
-	test(x_test, y_test, 1)
-
+	#test(x_test, y_test, 1)
+	kfModel(x_kf, y_kf, num_folds=10, batch_size=16)
 	# test_one is for the web interface, you can simply ignore it.
 	# test_one("AACTTTCAGCAGTGGAWGTCTAGGCTCGCACATCGANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCGAATTGCAGAATTCAGTGAGTCATCGAAATTTTGAACGCATATTGCACTTCCGGGTTATGCCTGGAAGTATGTCTGTATCAGTGTCC")
 	# test_one("GACTCTCGGCAACGGATATCTCGACTCTCGCATCGATGAAGAAAGTAGCAAAATGCGATACGTGGTGTGAATTGGACAATCCCGTGAATCGTCGAATCTTTGAACGCAAGTTGCGCCGAAGCCTTCCGACCGGGGGCACGTCTGCTTGGGCGTTA")
 	# test_one("ATTTCCATTGCTGCACCGTGAGTCGTCAGCAGGGCTTAGAATTGCTGGAGAATTGACTTTGTGAAAAGACTATTCTGTCTTGAAATTCCATCTCTTAGTTTTCCTTAAGAACATACAGAAACC")
-
-
-#def test_kf_no_training(x, y, num_folds=10, batch_size=16):
-	
-# 	skf = StratifiedKFold(n_splits=num_folds)
-# 	fold_accuracies = []  # List to store accuracy for each fold
-
-# 	# Load the pre-trained model once
-# 	model = RNAClassifier(len(labels_ref), num_channels, kernel_size, dropout_rate).to(device)
-# 	model.load_state_dict(torch.load('rna_type_checkpoint.pt')['model_state_dict'])
-# 	model.eval()  # Set the model to evaluation mode
-
-# 	for fold, (train_index, val_index) in enumerate(skf.split(x, y)):
-# 		print(f'Fold {fold + 1}/{num_folds}')
-
-# 		x_train, x_val = x[train_index], x[val_index]
-# 		y_train, y_val = y[train_index], y[val_index]
-	
-# 		val_dataset = RNATypeDataset(x_val, y_val)
-# 		val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
-# 		val_preds = []
-# 		val_targets = []
-
-# 		with torch.no_grad():
-# 			for batch in val_loader:
-# 				x_val_batch, y_val_batch = batch
-# 				x_val_batch, y_val_batch = x_val_batch.to(device).float(), y_val_batch.to(device).long()
-				
-# 				output, _ = model(x_val_batch)
-# 				_, y_pred = torch.max(output, 2)
-# 				val_preds.append(y_pred.cpu().numpy())
-# 				val_targets.append(y_val_batch.cpu().numpy())
-
-# 			val_preds = np.concatenate(val_preds)
-# 			val_targets = np.concatenate(val_targets)
-
-# 			val_acc = (val_preds == val_targets).mean()
-# 			fold_accuracies.append(val_acc)  # Store the accuracy of the current fold
-# 			print(f'Validation Accuracy for Fold {fold + 1}: {val_acc:.4f}')
-	
-# 	average_accuracy = np.mean(fold_accuracies)
-# 	print(f'Average Validation Accuracy over {num_folds} folds: {average_accuracy:.4f}')
-	
-# 	return
