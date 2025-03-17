@@ -138,7 +138,7 @@ def maxpooling_mask(input_mask,pool_length=3):
 	return max_all
 
 
-def preprocess_data(left, right, dataset, padmod='center', pooling_size=3):
+def preprocess_data(left, right, dataset, padmod='center', pooling_size=3): # edit needed
 	gene_data = Gene_data.load_sequence(dataset, left, right)
 	id_label_seq_Dict = get_id_label_seq_Dict(gene_data)
 	label_id_Dict = get_label_id_Dict(id_label_seq_Dict)
