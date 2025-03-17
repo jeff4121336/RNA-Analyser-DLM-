@@ -17,34 +17,30 @@ class AttentionMask(nn.Module):
         hidden,
         da,
         r,
-        activation="tanh",
         returnAttention=False,
-        attentionRegularizerWeight=0.0,
+        attentionRegularizerWeight=0.001,
         normalize=False,
         attmod="smooth",
         sharpBeta=1,
     ):
         super(AttentionMask, self).__init__()
-        self.hidden = hidden
-        self.da = da
-        self.r = r
-        self.activation = activation
+        self.hidden = hidden # number of hidden units of input
+        self.da = da # number of units in attention layer
+        self.r = r # number of heads
         self.returnAttention = returnAttention
-        self.attentionRegularizerWeight = attentionRegularizerWeight
-        self.normalize = normalize
-        self.attmod = attmod
-        self.sharpBeta = sharpBeta
+        self.attentionRegularizerWeight = attentionRegularizerWeight 
+        self.normalize = normalize # normalize attention score
+        self.attmod = attmod 
+        self.sharpBeta = sharpBeta 
 
-        self.W1 = nn.Parameter(torch.Tensor(hidden, da))
-        self.W2 = nn.Parameter(torch.Tensor(da, r))
-        # why use xavier_uniform ?
-        nn.init.xavier_uniform_(self.W1)
+        self.W1 = nn.Parameter(torch.Tensor(hidden, da)) # weight for (hidden, da)
+        self.W2 = nn.Parameter(torch.Tensor(da, r)) # weight for (da, r)
+        
+		# initialize weights
+        nn.init.xavier_uniform_(self.W1) 
         nn.init.xavier_uniform_(self.W2)
-
-        if activation == "tanh":
-            self.activation = torch.tanh
-        else:
-            raise NotImplementedError(f"Activation {activation} not implemented")
+        
+        self.activation = torch.tanh
 
     def forward(self, H):
         H1 = H[:, :, :-1]  # (batch_size, n, hidden) <-> input
@@ -83,10 +79,7 @@ class AttentionMask(nn.Module):
         else:
             regularization_loss = 0.0
 
-        if self.returnAttention:
-            return M, regularization_loss, A
-
-        return M, regularization_loss
+        return M, regularization_loss, A # Output embedding, Regularization loss, Attention score
 
     def _attention_regularizer(self, attention):
         #
