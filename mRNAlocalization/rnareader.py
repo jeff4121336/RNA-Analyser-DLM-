@@ -7,10 +7,13 @@ from tqdm import tqdm
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
+import torch.optim as optim
+import os
 
 from gene_data import Genedata
 from hier_attention_mask import AttentionMask
 from sklearn.model_selection import KFold, StratifiedKFold
+from torch.utils.data import DataLoader, Dataset
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DATA_PATH = "./data/"
@@ -33,20 +36,67 @@ class mRNA_FM:
 		embedding_model.eval()  # disables dropout for deterministic results
 		self.model = embedding_model
 		self.batch_converter = batch_converter
+		self.max_length = 1022 * 3  # Maximum sequence length for rna_fm
 
 	def embeddings(self, data):
-		batch_labels, batch_strs, batch_tokens = self.batch_converter(data)
-		with torch.no_grad():
-			results = self.model(batch_tokens, repr_layers=[12])
-		token_embeddings = results["representations"][12]
-		return token_embeddings
-	
+		"""
+		Generate embeddings for sequences, handling sequences longer than max_length.
+		"""
+		all_embeddings = []
+
+		# Ensure the model is on the GPU
+		self.model = self.model.to(DEVICE)
+
+		for label, sequence in tqdm(data, desc="Generating embeddings", unit="sequence"):
+			# Split sequence into chunks of max_length, ensuring divisibility by 3
+			chunks = [
+				sequence[i:i + self.max_length]
+				for i in range(0, len(sequence), self.max_length)
+			]
+			# Ensure each chunk is divisible by 3
+			chunks = [chunk[:len(chunk) - (len(chunk) % 3)] for chunk in chunks]
+		
+			chunk_embeddings = []
+			chunk_lengths = []  # Store the lengths of each chunk
+		
+			for chunk in chunks:
+				batch_data = [(label, chunk)]
+				batch_labels, batch_strs, batch_tokens = self.batch_converter(batch_data)
+		
+				batch_tokens = batch_tokens.to(DEVICE)
+		
+				with torch.no_grad():
+					results = self.model(batch_tokens, repr_layers=[12])
+				chunk_embedding = results["representations"][12]  # Shape: [1, seq_len, 1280]
+		
+				pooled_embedding = torch.mean(chunk_embedding, dim=1)  # Shape: [1, 1280]
+				chunk_embeddings.append(pooled_embedding)
+		
+				# Store the length of the chunk
+				chunk_lengths.append(chunk_embedding.shape[1])  # seq_len
+		
+			total_length = sum(chunk_lengths)
+			weights = [length / total_length for length in chunk_lengths]
+			# Total length = 1020 + 1020 + 500 = 2540
+			# Weights = [1020/2540, 1020/2540, 500/2540] ≈ [0.4016, 0.4016, 0.1968]
+			# combined_embedding = 0.4016 * embedding1 + 0.4016 * embedding2 + 0.1968 * embedding3
+			combined_embedding = sum(weight * embedding for weight, embedding in zip(weights, chunk_embeddings))  # Shape: [1, 1280]
+		
+			all_embeddings.append(combined_embedding)
+
+		return torch.cat(all_embeddings, dim=0)  # Shape: [batch_size, 1280]
+		
 class LLMClassifier(nn.Module):
-	def __init__(self, llm_model, output_dim):
+	def __init__(self, output_dim):
 		super(LLMClassifier, self).__init__()
 		self.llm_model = mRNA_FM()
 		self.output_dim = output_dim
 
+		# Freeze the LLM model parameters
+		for param in self.llm_model.model.parameters():
+			param.requires_grad = False
+
+		# Train this part only
 		self.fc1 = nn.Linear(768, 512)
 		self.fc2 = nn.Linear(512, output_dim)
 		self.activation = nn.ReLU()
@@ -79,16 +129,22 @@ class MultiscaleCNNLayers(nn.Module):
 		self.dropout_cnn = nn.Dropout(drop_rate_cnn)
 		self.dropout_fc = nn.Dropout(drop_rate_fc)
 
-		self.fc = nn.Linear(100, nb_classes)
+		self.fc = nn.Linear(999, nb_classes)
 		self.activation = nn.GELU() 
 
 	def forward_cnn(self, x, conv1, conv2, bn1, bn2):
 		x = conv1(x)
+		print(x.shape)
 		x = self.activation(bn1(x))
+		print(x.shape)
 		x = conv2(x)
+		print(x.shape)
 		x = self.activation(bn2(x))
+		print(x.shape)
 		x = self.pool(x)
+		print(x.shape)
 		x = self.dropout_cnn(x)
+		print(x.shape)
 		return x
 	
 class MultiscaleCNNModel(nn.Module):
@@ -99,7 +155,7 @@ class MultiscaleCNNModel(nn.Module):
 	def forward(self, x):
 		x1 = self.layers.forward_cnn(x, self.layers.conv1_1, self.layers.conv1_2, self.layers.bn1, self.layers.bn2)
 		x2 = self.layers.forward_cnn(x, self.layers.conv2_1, self.layers.conv2_2, self.layers.bn1, self.layers.bn2)
-		x3 = self.layers.forward_cnn(x, self.layers.conv3_1, self.layers.conv3_2, self.layers.bn1, self.layers.bn2)
+		x3 = self.layers.forward_cnn(x, self.layers.conv3_1, self.layers.conv3_2, self.layers.bn2, self.layers.bn2)
 		x = torch.cat((x1, x2, x3), dim=1)
 		x = self.layers.dropout_fc(self.layers.fc(x))
 		return x
@@ -129,6 +185,17 @@ class EnsembleModel(nn.Module):
 
 		return x
 
+class GeneDataset(Dataset):
+	def __init__(self, sequences, labels):
+		self.sequences = sequences
+		self.labels = labels
+
+	def __len__(self):
+		return len(self.sequences)
+
+	def __getitem__(self, idx):
+		return self.sequences[idx], self.labels[idx]
+	
 def get_id_label_seq_Dict(gene_data):
 #	{
 #   	gene_id_1: {label_1: (seqLeft_1, seqRight_1)},
@@ -215,7 +282,7 @@ def KFoldSampling(ids, k):
 def label_dist(dist):
 	return [int(x) for x in dist]
 
-def preprocess_data_onehot(left=3999, right=3999, pooling_size=3):
+def preprocess_data_onehot(left=3999, right=3999, k_fold=8):
 	# Prepare data
 	data = Genedata.load_sequence(
 		dataset=DATA_FILE,
@@ -225,12 +292,11 @@ def preprocess_data_onehot(left=3999, right=3999, pooling_size=3):
 	)
 	id_label_seq_dict = get_id_label_seq_Dict(data)
 	label_id_dict = get_label_id_Dict(id_label_seq_dict)
-	Train, Test, Val = group_sample(label_id_dict, DATA_PATH)
+	Train, Test, Val = group_sample(label_id_dict, DATA_PATH, k_fold)
 
 	X_train, X_test, X_val = {}, {}, {}
 	Y_train, Y_test, Y_val = {}, {}, {}
-
-	for i in tqdm(range(len(Train))): # fold num
+	for i in tqdm(range(len(Train))):  # Fold num
 		tqdm.write(f"Padding and Indexing data for fold {i+1} (One-Hot Encoding)")
 		seq_encoding_keys = list(encoding_seq.keys())
 		seq_encoding_vectors = np.array(list(encoding_seq.values()))
@@ -250,8 +316,9 @@ def preprocess_data_onehot(left=3999, right=3999, pooling_size=3):
 			combined = np.concatenate([one_hot_left, one_hot_right], axis=0)
 			X_train[i].append(combined)
 
-		X_train[i] = np.array(X_train[i])
-		Y_train[i] = np.array([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Train[i]])
+		# Convert list of NumPy arrays to a single NumPy array, then to a PyTorch tensor
+		X_train[i] = torch.tensor(np.array(X_train[i]), dtype=torch.float32).permute(0, 2, 1)
+		Y_train[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Train[i]], dtype=torch.long)
 
 		# Test data
 		X_test[i] = []
@@ -268,8 +335,9 @@ def preprocess_data_onehot(left=3999, right=3999, pooling_size=3):
 			combined = np.concatenate([one_hot_left, one_hot_right], axis=0)
 			X_test[i].append(combined)
 
-		X_test[i] = np.array(X_test[i])
-		Y_test[i] = np.array([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Test[i]])
+		# Convert list of NumPy arrays to a single NumPy array, then to a PyTorch tensor
+		X_test[i] = torch.tensor(np.array(X_test[i]), dtype=torch.float32).permute(0, 2, 1)
+		Y_test[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Test[i]], dtype=torch.long)
 
 		# Validation data
 		X_val[i] = []
@@ -286,80 +354,251 @@ def preprocess_data_onehot(left=3999, right=3999, pooling_size=3):
 			combined = np.concatenate([one_hot_left, one_hot_right], axis=0)
 			X_val[i].append(combined)
 
-		X_val[i] = np.array(X_val[i])
-		Y_val[i] = np.array([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Val[i]])
-
-		#print(X_train[0].shape, Y_train[0].shape) #(12093, 7998, 4) (12093, 7)
+		# Convert list of NumPy arrays to a single NumPy array, then to a PyTorch tensor
+		X_val[i] = torch.tensor(np.array(X_val[i]), dtype=torch.float32).permute(0, 2, 1)
+		Y_val[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Val[i]], dtype=torch.long)
+	
 	return X_train, X_test, X_val, Y_train, Y_test, Y_val
+
+def preprocess_data_raw_with_embeddings(left=3999, right=3999):
+    """
+    Prepare raw data for LLM training and generate embeddings using mRNA_FM.
+    """
+    # Load raw data
+    data = Genedata.load_sequence(
+        dataset=DATA_FILE,
+        left=left,  # Divisible by 3
+        right=right,
+        predict=False,
+    )
+    id_label_seq_dict = get_id_label_seq_Dict(data)
+    label_id_dict = get_label_id_Dict(id_label_seq_dict)
+    Train, Test, Val = group_sample(label_id_dict, DATA_PATH)
+
+    X_train, X_test, X_val = {}, {}, {}
+    Y_train, Y_test, Y_val = {}, {}, {}
+
+    # Initialize mRNA_FM model
+    mrna_fm = mRNA_FM()
+
+    for i in tqdm(range(len(Train))):  # Fold num
+        tqdm.write(f"Preparing raw data and generating embeddings for fold {i+1}")
+
+        # Train data
+        train_data = [
+            (
+                "id_" + str(idx),
+                (list(id_label_seq_dict[id].values())[0][0] + list(id_label_seq_dict[id].values())[0][1])
+            )
+            for idx, id in enumerate(Train[i])
+        ]
+        X_train[i] = torch.tensor(mrna_fm.embeddings(train_data).cpu().numpy(), dtype=torch.float32)  # Convert to Tensor
+        Y_train[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Train[i]], dtype=torch.long)
+
+        # Test data
+        test_data = [
+            (
+                "id_" + str(idx),
+                (list(id_label_seq_dict[id].values())[0][0] + list(id_label_seq_dict[id].values())[0][1])
+            )
+            for idx, id in enumerate(Test[i])
+        ]
+        X_test[i] = torch.tensor(mrna_fm.embeddings(test_data).cpu().numpy(), dtype=torch.float32)  # Convert to Tensor
+        Y_test[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Test[i]], dtype=torch.long)
+
+        # Validation data
+        val_data = [
+            (
+                "id_" + str(idx),
+                (list(id_label_seq_dict[id].values())[0][0] + list(id_label_seq_dict[id].values())[0][1])
+            )
+            for idx, id in enumerate(Val[i])
+        ]
+        X_val[i] = torch.tensor(mrna_fm.embeddings(val_data).cpu().numpy(), dtype=torch.float32)  # Convert to Tensor
+        Y_val[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Val[i]], dtype=torch.long)
+
+    return X_train, X_test, X_val, Y_train, Y_test, Y_val
+
+def train_model(model, name, X_train, Y_train, X_test, Y_test, X_val,
+			Y_val, batch_size, epochs=10, lr=1e-4, save_path="./models", log_file="training_log.txt"):
+	""" Train the LLM/CNN model and write logs to a file """
+	model = model.to(DEVICE)
+	criterion = nn.CrossEntropyLoss()
+	optimizer = optim.Adam(model.parameters(), lr=lr)
+
+	# Open the log file
+	with open(log_file, "w") as log:
+		for i in tqdm(range(len(X_train))):  # Fold num
+			log.write(f"fold {i+1} ({name} Training)\n")
+			tqdm.write(f"fold {i+1} ({name} Training)")
+
+			train_dataset = GeneDataset(X_train[i], Y_train[i])
+			val_dataset = GeneDataset(X_val[i], Y_val[i])
+			test_dataset = GeneDataset(X_test[i], Y_test[i])
+			train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+			val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+			test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+			best_val_loss = float('inf')
+
+			for epoch in range(epochs):
+				# Training step
+				model.train()
+				train_loss = 0
+				for sequences, labels in train_loader:
+					sequences, labels = sequences.to(DEVICE), labels.to(DEVICE)
+					labels = labels.long()
+					optimizer.zero_grad()
+					outputs = model(sequences)
+					loss = criterion(outputs, labels)
+					loss.backward()
+					optimizer.step()
+					train_loss += loss.item()
+
+				train_loss /= len(train_loader)
+
+				# Validation step
+				model.eval()
+				with torch.no_grad():
+					val_loss = 0
+					for sequences, labels in val_loader:
+						sequences, labels = sequences.to(DEVICE), labels.to(DEVICE)
+						outputs = model(sequences)
+						loss = criterion(outputs, labels)
+						val_loss += loss.item()
+
+				val_loss /= len(val_loader)
+				
+				log_message = f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}\n"
+				log.write(log_message)
+				tqdm.write(log_message)
+
+				# Save the best model
+				if val_loss < best_val_loss:
+					best_val_loss = val_loss
+					model_save_path = os.path.join(save_path, f"{name}_model_fold{i+1}.pth")
+					torch.save(model.state_dict(), model_save_path)
+					log.write(f"Best model for fold {i+1} saved with Val Loss: {best_val_loss:.4f}\n")
+					tqdm.write(f"Best model for fold {i+1} saved with Val Loss: {best_val_loss:.4f}")
+
+			# Load the best model for this fold
+			best_model_path = os.path.join(save_path, f"{name}_model_fold{i+1}.pth")
+			model.load_state_dict(torch.load(best_model_path))
+			log.write(f"Best model for fold {i+1} loaded from {best_model_path}\n")
+			tqdm.write(f"Best model for fold {i+1} loaded from {best_model_path}")
+
+			# Test step
+			model.eval()
+			with torch.no_grad():
+				test_loss = 0
+				for sequences, labels in test_loader:
+					sequences, labels = sequences.to(DEVICE), labels.to(DEVICE)
+					outputs = model(sequences)
+					loss = criterion(outputs, labels)
+					test_loss += loss.item()
+
+			test_loss /= len(test_loader)
+			log.write(f"Test Loss: {test_loss:.4f}\n")
+			tqdm.write(f"Test Loss: {test_loss:.4f}")
+
+	return
 
 
 if __name__ == "__main__":
-
-	# Load data
-	X_train, X_test, X_val, Y_train, Y_test, Y_val = preprocess_data_onehot(
+	# Load data for CNN
+	X_train_cnn, X_test_cnn, X_val_cnn, Y_train_cnn, Y_test_cnn, Y_val_cnn = preprocess_data_onehot(
 		left=3999,
 		right=3999,
-		pooling_size=3
+		k_fold=2
+	)
+	print(X_train_cnn[0].shape, Y_train_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
+	print(X_test_cnn[0].shape, Y_test_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
+	print(X_val_cnn[0].shape, Y_val_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
+
+	## Load data for LLM
+	#X_train_llm, X_test_llm, X_val_llm, Y_train_llm, Y_test_llm, Y_val_llm = preprocess_data_raw_with_embeddings(
+	#	left=3999,
+	#	right=3999
+	#)
+	#print(X_train_llm[0].shape, Y_train_llm[0].shape) #(12093, 7998, 4) (12093, 7)
+	#print(X_test_llm[0].shape, Y_test_llm[0].shape) #(12093, 7998, 4) (12093, 7)
+	#print(X_val_llm[0].shape, Y_val_llm[0].shape) #(12093, 7998, 4) (12093, 7)
+
+	# Initialize CNN model
+	cnn_layers = MultiscaleCNNLayers(
+	    in_channels=64,
+	    embedding_dim=4,  # For one-hot encoding
+	    pooling_size=8,
+	    pooling_stride=8,
+	    drop_rate_cnn=0.2,
+	    drop_rate_fc=0.2,
+	    nb_classes=7
+	)
+	cnn_model = MultiscaleCNNModel(cnn_layers).to(DEVICE)
+
+	# Train CNN model
+	train_model(
+		model=cnn_model,
+		name="CNN",
+		X_train=X_train_cnn,
+		Y_train=Y_train_cnn,
+		X_test=X_test_cnn,
+		Y_test=Y_test_cnn,
+		X_val=X_val_cnn,
+		Y_val=Y_val_cnn,
+		batch_size=32,
+		epochs=10,
+		lr=1e-5,
+		save_path="./cnn_models"
 	)
 
-	print("X_train shape:", X_train[0].shape)
-	print("Y_train shape:", Y_train[0].shape)
-	print("X_test shape:", X_test[0].shape)
-	print("Y_test shape:", Y_test[0].shape)	
-	print("X_val shape:", X_val[0].shape)
-	print("Y_val shape:", Y_val[0].shape)
-	
-	# Convert data to torch tensors
+	# Initialize LLM model
+	#llm_model = LLMClassifier(
+	#	output_dim=6
+	#).to(DEVICE)
 
+	#print(llm_model)
+	## Train LLM model
+	#train_model(
+	#	model=llm_model,
+	#	name="LLM",
+	#	X_train=X_train_llm,
+	#	Y_train=Y_train_llm,
+	#	X_test=X_test_llm,
+	#	Y_test=Y_test_llm,
+	#	X_val=X_val_llm,
+	#	Y_val=Y_val_llm,
+	#	batch_size=32,
+	#	epochs=10,
+	#	lr=1e-5,
+	#	save_path="./llm_models"
+	#)
 
-	#ensemble_model = ensemble_model.to(DEVICE)
-	#X_train_tensor = torch.tensor(X_train[0], dtype=torch.float32).to(DEVICE)
-	#X_test_tensor = torch.tensor(X_test[0], dtype=torch.float32).to(DEVICE)
-	#X_val_tensor = torch.tensor(X_val[0], dtype=torch.float32).to(DEVICE)
-	#Y_train_tensor = torch.tensor(Y_train[0], dtype=torch.float32).to(DEVICE)
-	#Y_test_tensor = torch.tensor(Y_test[0], dtype=torch.float32).to(DEVICE)
-	#Y_val_tensor = torch.tensor(Y_val[0], dtype=torch.float32).to(DEVICE)
-	
-	# Load mRNA-FM model, LLM class
-	llm_model = LLMClassifier(
-		llm_model=mRNA_FM(),
-		output_dim=6
-	)
-	# llm_output = llm_model(X_train_tensor)
-	
-	#print("Token embeddings shape:", llm_token_embeddings.shape)
-	#print("Token embeddings:", llm_token_embeddings)
-	
-	# one hot 
-	cnn_model = MultiscaleCNNLayers(
-		in_channels=64,
-		embedding_dim=4,  # For one-hot encoding
-		pooling_size=8,
-		pooling_stride=8,
-		drop_rate_cnn=0.2,
-		drop_rate_fc=0.2,
-		nb_classes=6
-	)
-	# cnn_output = llm_model(X_train_tensor)
+	# Initialize Ensemble model
+	#ensemble_model = EnsembleModel(
+	#    llm_model=llm_model,
+	#    cnn_model=cnn_model,
+	#    llm_output_dim=768,  # Output dimension of LLM
+	#    cnn_output_dim=6,    # Output dimension of CNN
+	#    hidden_dim=128,
+	#    nb_classes=6
+	#).to(DEVICE)
 
+	# Train Ensemble model (implement a new function for this)
+	# train_ensemble_model(...)
+# combine LLM and CNN part with single NN for final anwser]
+	#model, alphabet = fm.pretrained.mrna_fm_t12()
+	#batch_converter = alphabet.get_batch_converter()
+	#model.eval()  # disables dropout for deterministic results
 
-	ensemble_model = EnsembleModel(
-		llm_model=llm_model,
-		cnn_model=cnn_model,
-		llm_output_dim=768,  
-		cnn_output_dim=6,
-		hidden_dim=128,
-		nb_classes=6
-	)
-	
-	output = ensemble_model(llm_output, cnn_output)
+	## Prepare data
+	#data = [
+	#	("CDS2", "AAGAUAAAGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGAUGAUGAUGAUGAUGAUGAUGAUGAUGAUGAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGAUGAUGAUGAUGAUGAUGAUGAUGAUGAUGAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCAAUGGGGUGUCGCUCAGUUGGUAGAGUGCUUGCCUGGCAUGCAAGAAACCUUGGUUCAAUCCCCAGCACUGCA"),
+	#]
+	#batch_labels, batch_strs, batch_tokens = batch_converter(data)
 
-	# Output of ensemble_model code
-	
-
-
-	# token_embeddings: (batch_size, seq_len, embedding_dim)
-
-
-
-# combine LLM and CNN part with single NN for final anwser
+	## Extract embeddings (on CPU)
+	#with torch.no_grad():
+	#	results = model(batch_tokens, repr_layers=[12])
+	#token_embeddings = results["representations"][12]
+	#print(token_embeddings.shape)  # Shape: [batch_size, seq_len, embedding_dim]
