@@ -3,7 +3,6 @@ import numpy as np
 np.random.seed(1234)
 
 class Genedata:
-    trainTestSplitRatio = 0.1
 
     def __init__(self, id, label):
         self.id = id

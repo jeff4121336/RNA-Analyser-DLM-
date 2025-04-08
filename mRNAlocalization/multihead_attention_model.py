@@ -12,9 +12,6 @@ from sklearn.metrics import (
 	precision_recall_curve,
 )
 
-# class PostitionEmbedding(nn.Module):
-
-
 class MultiscaleCNN(nn.Module):
 	def __init__(
 		self,
@@ -161,7 +158,7 @@ class MultiscaleCNN(nn.Module):
 	def forward(self, x, mask):
 		# One-hot encoding (modify needed)
 		x = F.one_hot(x, num_classes=4).float()
-		x = self.dropout_input(x)
+		#x = self.dropout_input(x)
 		x = x.permute(0, 2, 1)  # Change to (batch_size, channels, seq_len)
 
 		# CNN1, CNN2, CNN3

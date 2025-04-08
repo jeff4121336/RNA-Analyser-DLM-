@@ -34,7 +34,7 @@ class Gene_ML:
 	def classifer(self, X_train_pca, X_test_pca, y_train, y_test, use_chain = False, classifier_choice='svm'):
 		
 		# Train and Evaluate the Model
-		# Paper method - OvR -> all problems into binary classification problems
+		# MulStach Paper method - OvR -> all problems into binary classification problems
 		if classifier_choice == 'svm':
 			base_model = SVC(kernel='linear', probability=True)
 		elif classifier_choice == 'rf':

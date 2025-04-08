@@ -34,14 +34,6 @@ seq_encoding_vectors = np.array(list(encoding_seq.values()))
 
 gene_ids = None
 
-def calculating_class_weights(y_true):
-	number_dim = np.shape(y_true)[1]
-	weights = np.empty([number_dim, 2])
-	for i in range(number_dim):
-		weights[i] = compute_class_weight('balanced', [0., 1.], y_true[:, i])
-	return weights
-
-
 def get_id_label_seq_Dict(gene_data):
 	id_label_seq_Dict = OrderedDict()
 	for gene in gene_data:
@@ -264,6 +256,7 @@ class GeneDataset(Dataset):
 
 def train_model(model, train_loader, val_loader, criterion, optimizer, epochs):
 	for epoch in range(epochs):
+		# pytorch doesn't have add_loss, need to add munually in training loop
 		model.train()
 		for sequences, labels in train_loader:
 			sequences, labels = sequences.to(device), labels.to(device)
@@ -321,6 +314,9 @@ def run_model(lower_bound, upper_bound, dataset, **kwargs):
 	model = model.to(device)
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=kwargs['lr'])
+
+	#if kwargs['nb_classes'] == 7:
+    #    class_weights={0:1,1:1,2:7,3:1,4:3,5:5,6:8}
 
 	for i in range(1):
 		train_dataset = GeneDataset(Xtrain[i], Ytrain[i])
