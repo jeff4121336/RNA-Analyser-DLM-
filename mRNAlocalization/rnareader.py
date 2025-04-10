@@ -17,8 +17,8 @@ from torch.utils.data import DataLoader, Dataset
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DATA_PATH = "./data/"
-#DATA_FILE = DATA_PATH + "modified_multilabel_seq_nonredundent.fasta"
-DATA_FILE = DATA_PATH + "test.fasta"
+DATA_FILE = DATA_PATH + "modified_multilabel_seq_nonredundent.fasta"
+#DATA_FILE = DATA_PATH + "test.fasta"
 
 
 encoding_seq = OrderedDict([
@@ -133,17 +133,11 @@ class MultiscaleCNNLayers(nn.Module):
 
 	def forward_cnn(self, x, conv1, conv2, bn1, bn2):
 		x = conv1(x)
-		print(x.shape)
 		x = self.activation(bn1(x))
-		print(x.shape)
 		x = conv2(x)
-		print(x.shape)
 		x = self.activation(bn2(x))
-		print(x.shape)
 		x = self.pool(x)
-		print(x.shape)
 		x = self.dropout_cnn(x)
-		print(x.shape)
 		return x
 	
 class MultiscaleCNNModel(nn.Module):
@@ -165,9 +159,9 @@ class EnsembleModel(nn.Module):
 		self.llm_model = llm_model
 		self.cnn_model = cnn_model
 
-		# Fully connected NN for combining LLM and CNN outputs and length compoent
+		# Fully connected NN for combining LLM and CNN outputs and length compoent in second layer
 		self.fc1 = nn.Linear(llm_output_dim + cnn_output_dim, (llm_output_dim + cnn_output_dim)/ 2 + 1)
-		self.fc2 = nn.Linear(hidden_dim, nb_classes)
+		self.fc2 = nn.Linear((llm_output_dim + cnn_output_dim)/ 2 + 1, nb_classes)
 		self.activation = nn.ReLU()
 		self.dropout = nn.Dropout(0.2)
 	
@@ -392,7 +386,7 @@ def preprocess_data_raw_with_embeddings(left=3999, right=3999):
             for idx, id in enumerate(Train[i])
         ]
         X_train[i] = torch.tensor(mrna_fm.embeddings(train_data).cpu().numpy(), dtype=torch.float32)  # Convert to Tensor
-        Y_train[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Train[i]], dtype=torch.long)
+        Y_train[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Train[i]], dtype=torch.float32)
 
         # Test data
         test_data = [
@@ -403,7 +397,7 @@ def preprocess_data_raw_with_embeddings(left=3999, right=3999):
             for idx, id in enumerate(Test[i])
         ]
         X_test[i] = torch.tensor(mrna_fm.embeddings(test_data).cpu().numpy(), dtype=torch.float32)  # Convert to Tensor
-        Y_test[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Test[i]], dtype=torch.long)
+        Y_test[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Test[i]], dtype=torch.float32)
 
         # Validation data
         val_data = [
@@ -414,7 +408,7 @@ def preprocess_data_raw_with_embeddings(left=3999, right=3999):
             for idx, id in enumerate(Val[i])
         ]
         X_val[i] = torch.tensor(mrna_fm.embeddings(val_data).cpu().numpy(), dtype=torch.float32)  # Convert to Tensor
-        Y_val[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Val[i]], dtype=torch.long)
+        Y_val[i] = torch.tensor([label_dist(list(id_label_seq_dict[id].keys())[0]) for id in Val[i]], dtype=torch.float32)
 
     return X_train, X_test, X_val, Y_train, Y_test, Y_val
 
@@ -446,7 +440,7 @@ def train_model(model, name, X_train, Y_train, X_test, Y_test, X_val,
 				train_loss = 0
 				for sequences, labels in train_loader:
 					sequences, labels = sequences.to(DEVICE), labels.to(DEVICE)
-					labels = labels.long()
+					#labels = labels.long()
 					optimizer.zero_grad()
 					outputs = model(sequences)
 					loss = criterion(outputs, labels)
@@ -504,14 +498,14 @@ def train_model(model, name, X_train, Y_train, X_test, Y_test, X_val,
 
 if __name__ == "__main__":
 	# Load data for CNN
-	#X_train_cnn, X_test_cnn, X_val_cnn, Y_train_cnn, Y_test_cnn, Y_val_cnn = preprocess_data_onehot(
-	#	left=3999,
-	#	right=3999,
-	#	k_fold=8
-	#)
-	#print(X_train_cnn[0].shape, Y_train_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
-	#print(X_test_cnn[0].shape, Y_test_cnn[0].shape)
-	#print(X_val_cnn[0].shape, Y_val_cnn[0].shape)
+	X_train_cnn, X_test_cnn, X_val_cnn, Y_train_cnn, Y_test_cnn, Y_val_cnn = preprocess_data_onehot(
+		left=3999,
+		right=3999,
+		k_fold=8
+	)
+	print(X_train_cnn[0].shape, Y_train_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
+	print(X_test_cnn[0].shape, Y_test_cnn[0].shape)
+	print(X_val_cnn[0].shape, Y_val_cnn[0].shape)
 
 	# Load data for LLM
 	X_train_llm, X_test_llm, X_val_llm, Y_train_llm, Y_test_llm, Y_val_llm = preprocess_data_raw_with_embeddings(
@@ -523,40 +517,41 @@ if __name__ == "__main__":
 	print(X_val_llm[0].shape, Y_val_llm[0].shape) 
 
 	### Initialize CNN model
-	#cnn_layers = MultiscaleCNNLayers(
-	#    in_channels=64,
-	#    embedding_dim=4,  # For one-hot encoding
-	#    pooling_size=8,
-	#    pooling_stride=8,
-	#    drop_rate_cnn=0.2,
-	#    drop_rate_fc=0.2,
-	#    nb_classes=7
-	#)
-	#cnn_model = MultiscaleCNNModel(cnn_layers).to(DEVICE)
+	cnn_layers = MultiscaleCNNLayers(
+	    in_channels=64,
+	    embedding_dim=4,  # For one-hot encoding
+	    pooling_size=8,
+	    pooling_stride=8,
+	    drop_rate_cnn=0.2,
+	    drop_rate_fc=0.2,
+	    nb_classes=7
+	)
+	cnn_model = MultiscaleCNNModel(cnn_layers).to(DEVICE)
 
-	## Train CNN model
-	#train_model(
-	#	model=cnn_model,
-	#	name="CNN",
-	#	X_train=X_train_cnn,
-	#	Y_train=Y_train_cnn,
-	#	X_test=X_test_cnn,
-	#	Y_test=Y_test_cnn,
-	#	X_val=X_val_cnn,
-	#	Y_val=Y_val_cnn,
-	#	batch_size=32,
-	#	epochs=10,
-	#	lr=1e-5,
-	#	save_path="./cnn_models"
-	#)
+	# Train CNN model
+	train_model(
+		model=cnn_model,
+		name="CNN",
+		X_train=X_train_cnn,
+		Y_train=Y_train_cnn,
+		X_test=X_test_cnn,
+		Y_test=Y_test_cnn,
+		X_val=X_val_cnn,
+		Y_val=Y_val_cnn,
+		batch_size=32,
+		epochs=10,
+		lr=1e-5,
+		save_path="./cnn_models",
+		log_file="cnn_training_log.txt"
+	)
 
 	# Initialize LLM model
 	llm_model = LLMClassifier(
 		output_dim=7
 	).to(DEVICE)
 
-	#print(llm_model)
-	# Train LLM model
+	##print(llm_model)
+	## Train LLM model
 	train_model(
 		model=llm_model,
 		name="LLM",
@@ -569,7 +564,8 @@ if __name__ == "__main__":
 		batch_size=32,
 		epochs=10,
 		lr=1e-5,
-		save_path="./llm_models"
+		save_path="./llm_models",
+		log_file="llm_training_log.txt"
 	)
 
 	# Initialize Ensemble model
