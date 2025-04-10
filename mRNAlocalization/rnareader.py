@@ -17,7 +17,9 @@ from torch.utils.data import DataLoader, Dataset
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DATA_PATH = "./data/"
-DATA_FILE = DATA_PATH + "modified_multilabel_seq_nonredundent.fasta"
+#DATA_FILE = DATA_PATH + "modified_multilabel_seq_nonredundent.fasta"
+DATA_FILE = DATA_PATH + "test.fasta"
+
 
 encoding_seq = OrderedDict([
 	('A', [1, 0, 0, 0]),
@@ -89,25 +91,22 @@ class mRNA_FM:
 class LLMClassifier(nn.Module):
 	def __init__(self, output_dim):
 		super(LLMClassifier, self).__init__()
-		self.llm_model = mRNA_FM()
 		self.output_dim = output_dim
 
-		# Freeze the LLM model parameters
-		for param in self.llm_model.model.parameters():
-			param.requires_grad = False
-
-		# Train this part only
-		self.fc1 = nn.Linear(768, 512)
-		self.fc2 = nn.Linear(512, output_dim)
+		self.fc1 = nn.Linear(1280, 512)
+		self.fc2 = nn.Linear(512, 64)
+		self.fc3 = nn.Linear(64, output_dim)
 		self.activation = nn.ReLU()
 		self.dropout = nn.Dropout(0.2)
 
 	def forward(self, x):
-		x = self.llm_model(x) # embedding model
 		x = self.fc1(x)
 		x = self.activation(x)
 		x = self.dropout(x)
 		x = self.fc2(x)
+		x = self.activation(x)
+		x = self.dropout(x)
+		x = self.fc3(x)
 		return x
 
 class MultiscaleCNNLayers(nn.Module):
@@ -166,8 +165,8 @@ class EnsembleModel(nn.Module):
 		self.llm_model = llm_model
 		self.cnn_model = cnn_model
 
-		# Fully connected NN for combining LLM and CNN outputs
-		self.fc1 = nn.Linear(llm_output_dim + cnn_output_dim, hidden_dim)
+		# Fully connected NN for combining LLM and CNN outputs and length compoent
+		self.fc1 = nn.Linear(llm_output_dim + cnn_output_dim + 1, hidden_dim)
 		self.fc2 = nn.Linear(hidden_dim, nb_classes)
 		self.activation = nn.ReLU()
 		self.dropout = nn.Dropout(0.2)
@@ -420,7 +419,7 @@ def preprocess_data_raw_with_embeddings(left=3999, right=3999):
     return X_train, X_test, X_val, Y_train, Y_test, Y_val
 
 def train_model(model, name, X_train, Y_train, X_test, Y_test, X_val,
-			Y_val, batch_size, epochs=10, lr=1e-4, save_path="./models", log_file="training_log.txt"):
+			Y_val, batch_size, epochs=50, lr=1e-5, save_path="./models", log_file="training_log.txt"):
 	""" Train the LLM/CNN model and write logs to a file """
 	model = model.to(DEVICE)
 	criterion = nn.CrossEntropyLoss()
@@ -500,79 +499,78 @@ def train_model(model, name, X_train, Y_train, X_test, Y_test, X_val,
 			test_loss /= len(test_loader)
 			log.write(f"Test Loss: {test_loss:.4f}\n")
 			tqdm.write(f"Test Loss: {test_loss:.4f}")
-
 	return
 
 
 if __name__ == "__main__":
 	# Load data for CNN
-	X_train_cnn, X_test_cnn, X_val_cnn, Y_train_cnn, Y_test_cnn, Y_val_cnn = preprocess_data_onehot(
-		left=3999,
-		right=3999,
-		k_fold=2
-	)
-	print(X_train_cnn[0].shape, Y_train_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
-	print(X_test_cnn[0].shape, Y_test_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
-	print(X_val_cnn[0].shape, Y_val_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
-
-	## Load data for LLM
-	#X_train_llm, X_test_llm, X_val_llm, Y_train_llm, Y_test_llm, Y_val_llm = preprocess_data_raw_with_embeddings(
+	#X_train_cnn, X_test_cnn, X_val_cnn, Y_train_cnn, Y_test_cnn, Y_val_cnn = preprocess_data_onehot(
 	#	left=3999,
-	#	right=3999
+	#	right=3999,
+	#	k_fold=8
 	#)
-	#print(X_train_llm[0].shape, Y_train_llm[0].shape) #(12093, 7998, 4) (12093, 7)
-	#print(X_test_llm[0].shape, Y_test_llm[0].shape) #(12093, 7998, 4) (12093, 7)
-	#print(X_val_llm[0].shape, Y_val_llm[0].shape) #(12093, 7998, 4) (12093, 7)
+	#print(X_train_cnn[0].shape, Y_train_cnn[0].shape) #(12093, 4, 7998) (12093, 7)
+	#print(X_test_cnn[0].shape, Y_test_cnn[0].shape)
+	#print(X_val_cnn[0].shape, Y_val_cnn[0].shape)
 
-	# Initialize CNN model
-	cnn_layers = MultiscaleCNNLayers(
-	    in_channels=64,
-	    embedding_dim=4,  # For one-hot encoding
-	    pooling_size=8,
-	    pooling_stride=8,
-	    drop_rate_cnn=0.2,
-	    drop_rate_fc=0.2,
-	    nb_classes=7
+	# Load data for LLM
+	X_train_llm, X_test_llm, X_val_llm, Y_train_llm, Y_test_llm, Y_val_llm = preprocess_data_raw_with_embeddings(
+		left=3999,
+		right=3999
 	)
-	cnn_model = MultiscaleCNNModel(cnn_layers).to(DEVICE)
+	print(X_train_llm[0].shape, Y_train_llm[0].shape) 
+	print(X_test_llm[0].shape, Y_test_llm[0].shape) 
+	print(X_val_llm[0].shape, Y_val_llm[0].shape) 
 
-	# Train CNN model
-	train_model(
-		model=cnn_model,
-		name="CNN",
-		X_train=X_train_cnn,
-		Y_train=Y_train_cnn,
-		X_test=X_test_cnn,
-		Y_test=Y_test_cnn,
-		X_val=X_val_cnn,
-		Y_val=Y_val_cnn,
-		batch_size=32,
-		epochs=10,
-		lr=1e-5,
-		save_path="./cnn_models"
-	)
+	### Initialize CNN model
+	#cnn_layers = MultiscaleCNNLayers(
+	#    in_channels=64,
+	#    embedding_dim=4,  # For one-hot encoding
+	#    pooling_size=8,
+	#    pooling_stride=8,
+	#    drop_rate_cnn=0.2,
+	#    drop_rate_fc=0.2,
+	#    nb_classes=7
+	#)
+	#cnn_model = MultiscaleCNNModel(cnn_layers).to(DEVICE)
 
-	# Initialize LLM model
-	#llm_model = LLMClassifier(
-	#	output_dim=6
-	#).to(DEVICE)
-
-	#print(llm_model)
-	## Train LLM model
+	## Train CNN model
 	#train_model(
-	#	model=llm_model,
-	#	name="LLM",
-	#	X_train=X_train_llm,
-	#	Y_train=Y_train_llm,
-	#	X_test=X_test_llm,
-	#	Y_test=Y_test_llm,
-	#	X_val=X_val_llm,
-	#	Y_val=Y_val_llm,
+	#	model=cnn_model,
+	#	name="CNN",
+	#	X_train=X_train_cnn,
+	#	Y_train=Y_train_cnn,
+	#	X_test=X_test_cnn,
+	#	Y_test=Y_test_cnn,
+	#	X_val=X_val_cnn,
+	#	Y_val=Y_val_cnn,
 	#	batch_size=32,
 	#	epochs=10,
 	#	lr=1e-5,
-	#	save_path="./llm_models"
+	#	save_path="./cnn_models"
 	#)
+
+	# Initialize LLM model
+	llm_model = LLMClassifier(
+		output_dim=7
+	).to(DEVICE)
+
+	#print(llm_model)
+	# Train LLM model
+	train_model(
+		model=llm_model,
+		name="LLM",
+		X_train=X_train_llm,
+		Y_train=Y_train_llm,
+		X_test=X_test_llm,
+		Y_test=Y_test_llm,
+		X_val=X_val_llm,
+		Y_val=Y_val_llm,
+		batch_size=32,
+		epochs=10,
+		lr=1e-5,
+		save_path="./llm_models"
+	)
 
 	# Initialize Ensemble model
 	#ensemble_model = EnsembleModel(
