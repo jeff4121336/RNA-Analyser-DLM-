@@ -166,7 +166,7 @@ class EnsembleModel(nn.Module):
 		self.cnn_model = cnn_model
 
 		# Fully connected NN for combining LLM and CNN outputs and length compoent
-		self.fc1 = nn.Linear(llm_output_dim + cnn_output_dim + 1, hidden_dim)
+		self.fc1 = nn.Linear(llm_output_dim + cnn_output_dim, (llm_output_dim + cnn_output_dim)/ 2 + 1)
 		self.fc2 = nn.Linear(hidden_dim, nb_classes)
 		self.activation = nn.ReLU()
 		self.dropout = nn.Dropout(0.2)
@@ -578,7 +578,6 @@ if __name__ == "__main__":
 	#    cnn_model=cnn_model,
 	#    llm_output_dim=768,  # Output dimension of LLM
 	#    cnn_output_dim=6,    # Output dimension of CNN
-	#    hidden_dim=128,
 	#    nb_classes=6
 	#).to(DEVICE)
 
